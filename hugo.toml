@@ -1,0 +1,59 @@
+baseURL = "https://jakubhovorka.cloud/"
+locale = "en-us"
+title = "Jakub Hovorka"
+theme = "PaperMod"
+paginate = 10
+
+[params]
+  author = "Jakub Hovorka"
+  description = "DevOps/Platform engineer. Writing about homelabbing and on-prem infrastructure."
+  ShowReadingTime = true
+  ShowShareButtons = false
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowRssButtonInSectionTermList = false
+  ShowToc = false
+  dateFormat = "2 January 2006"
+
+  [params.profileMode]
+    enabled = true
+    title = "Jakub Hovorka"
+    subtitle = "DevOps/Platform engineer. I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
+    imageUrl = ""
+    imageWidth = 120
+    imageHeight = 120
+
+    [[params.profileMode.buttons]]
+      name = "Blog"
+      url = "/posts/"
+
+[[params.socialIcons]]
+  name = "github"
+  url = "https://github.com/Jacobcaller"
+
+[[params.socialIcons]]
+  name = "email"
+  url = "mailto:hovorkaobch@gmail.com"
+
+[menu]
+  [[menu.main]]
+    identifier = "posts"
+    name = "Blog"
+    url = "/posts/"
+    weight = 10
+  [[menu.main]]
+    identifier = "archives"
+    name = "Archive"
+    url = "/archives/"
+    weight = 20
+  [[menu.main]]
+    identifier = "tags"
+    name = "Tags"
+    url = "/tags/"
+    weight = 30
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
