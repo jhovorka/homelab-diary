@@ -4,6 +4,9 @@ date: 2026-04-15
 description: "Goals, requirements, and how I ended up buying three Chuwi mini PCs for a total of 1390€."
 tags: ["homelab", "hardware", "proxmox", "kubernetes"]
 series: ["Homelab Diary"]
+neso:
+  cover:
+    image: "ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"
 ---
 
 Yes, building any computer in 2026 is a painful experience for your wallet. Unfortunately, it won't get better any time soon (thanks, AI!), and it might even get worse, so we just have to grit our teeth and try to find the best deals possible.

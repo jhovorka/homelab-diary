@@ -4,6 +4,9 @@ date: 2026-05-01
 description: "Assembling the rack, installing RAM and SSDs, and getting Proxmox up and running on three Chuwi mini PCs."
 tags: ["homelab", "hardware", "proxmox", "networking"]
 series: ["Homelab Diary"]
+neso:
+  cover:
+    image: "a29405c2-1b68-4556-9905-db48e58ec036.png"
 ---
 
 In the previous part of this blog series, I shared what approach I chose when deciding on what hardware my homelab needs, and I also went over all the parts I ended up buying. Now is the time to finally start building and turn the pile of parts into a homelab.
