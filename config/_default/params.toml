@@ -2,7 +2,7 @@
   time_format = "January 2, 2006"
 
 [params.neso.branding]
-  hide_logo_text = true
+  logo_text = "JH"
 
 [params.neso.seo]
   site_description = "I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
