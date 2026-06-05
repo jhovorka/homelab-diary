@@ -1,0 +1,35 @@
+colorScheme = "congo"
+defaultAppearance = "light"
+autoSwitchAppearance = true
+enableSearch = false
+enableCodeCopy = true
+
+[homepage]
+  layout = "profile"
+  showRecent = true
+  showRecentItems = 5
+  showMoreLink = true
+  showMoreLinkDest = "/posts"
+
+[article]
+  showDate = true
+  showDateUpdated = false
+  showAuthor = false
+  showReadingTime = true
+  showTableOfContents = false
+  showBreadcrumbs = true
+  showDraftLabel = false
+  showEdit = false
+  showHeadingAnchors = false
+  showPagination = true
+  showViews = false
+  showLikes = false
+
+[list]
+  showBreadcrumbs = false
+  showTableOfContents = false
+  showSummary = true
+  groupByYear = false
+
+[sitemap]
+  excludedKinds = []
