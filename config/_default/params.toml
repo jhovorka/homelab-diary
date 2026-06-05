@@ -1,35 +1,27 @@
-colorScheme = "slate"
-defaultAppearance = "light"
-autoSwitchAppearance = true
-enableSearch = false
-enableCodeCopy = true
+[params.neso]
+  time_format = "January 2, 2006"
 
-[homepage]
-  layout = "profile"
-  showRecent = true
-  showRecentItems = 5
-  showMoreLink = true
-  showMoreLinkDest = "/posts"
+[params.neso.seo]
+  site_description = "I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
 
-[article]
-  showDate = true
-  showDateUpdated = false
-  showAuthor = false
-  showReadingTime = true
-  showTableOfContents = false
-  showBreadcrumbs = true
-  showDraftLabel = false
-  showEdit = false
-  showHeadingAnchors = false
-  showPagination = true
-  showViews = false
-  showLikes = false
+[params.neso.home]
+  display_mode = "profile"
 
-[list]
-  showBreadcrumbs = false
-  showTableOfContents = false
-  showSummary = true
-  groupByYear = false
+[params.neso.home.profile]
+  avatar_image = ""
 
-[sitemap]
-  excludedKinds = []
+[[params.neso.home.profile.link_btns]]
+  label = "GitHub"
+  url   = "https://github.com/jhovorka"
+
+[[params.neso.social.links]]
+  name = "github"
+  url  = "https://github.com/jhovorka"
+
+[[params.neso.social.links]]
+  name = "email"
+  url  = "mailto:hovorkaobch@gmail.com"
+
+[params.neso.page]
+  show_reading_time = true
+  show_breadcrumbs  = true

@@ -1,5 +1,5 @@
 baseURL = "https://jakubhovorka.cloud/"
 locale = "en"
 title = "Jakub Hovorka"
-theme = "congo"
+theme = "hugo-neso"
 paginate = 10

@@ -1,13 +1,3 @@
 label = "English"
 weight = 1
 title = "Jakub Hovorka"
-
-[author]
-  name = "Jakub Hovorka"
-  image = ""
-  headline = "DevOps/Platform engineer"
-  bio = "I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
-  links = [
-    { github = "https://github.com/jhovorka" },
-    { email = "mailto:hovorkaobch@gmail.com" }
-  ]

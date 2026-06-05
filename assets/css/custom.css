@@ -1,4 +1,0 @@
-/* Center article prose content within the flex container */
-article .prose.flex {
-  justify-content: center;
-}
