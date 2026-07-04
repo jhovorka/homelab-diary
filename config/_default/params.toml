@@ -4,6 +4,7 @@ profilePicture = "images/jakub-hovorka.jpg"
 mainSections = ["posts"]
 rssFullContent = true
 customCss = ["css/custom.css"]
+contentratio = 0.7
 
 [author]
   name = "Jakub Hovorka"
