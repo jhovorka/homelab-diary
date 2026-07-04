@@ -22,7 +22,3 @@ Here's an example of how to use the module:
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part4" lines="11-26" >}}
 
-
-
-
-WIP
