@@ -1,0 +1,9 @@
+#!/bin/bash
+# Hugo's dartsass transpiler execs "sass" via PATH and expects the
+# sass-embedded protocol. npm's optional-dependency resolution for
+# sass-embedded's platform fallback packages can leave the plain
+# (non-embedded) "sass" package occupying node_modules/.bin/sass instead,
+# which fails with "sass --embedded is unavailable in pure JS mode."
+# Prepend this directory to PATH ahead of node_modules/.bin to force the
+# correct binary.
+exec node "$(dirname "$0")/../../node_modules/sass-embedded/dist/bin/sass.js" "$@"

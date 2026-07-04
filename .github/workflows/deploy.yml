@@ -33,6 +33,16 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Sass
+        run: |
+          npm ci
+          echo "${{ github.workspace }}/scripts/bin" >> "$GITHUB_PATH"
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
@@ -41,7 +51,7 @@ jobs:
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
-        run: hugo --gc --minify --baseURL "https://jakubhovorka.cloud/"
+        run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -1,0 +1,26 @@
+baseURL = "https://jakubhovorka.cloud/"
+locale = "en"
+title = "Jakub Hovorka"
+theme = "anatole"
+paginate = 10
+
+summarylength = 30
+enableEmoji = true
+enableRobotsTXT = true
+
+pygmentsUseClasses = true
+pygmentsCodeFences = true
+pygmentsCodefencesGuessSyntax = true
+
+[taxonomies]
+  category = "categories"
+  series = "series"
+  tag = "tags"
+
+[security.http]
+  urls = ['^https://raw\.githubusercontent\.com/']
+
+[caches.getresource]
+  # GitHub embeds are pinned to a commit, so the fetched content never
+  # changes — cache it indefinitely instead of re-fetching every build.
+  maxAge = -1

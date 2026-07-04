@@ -4,7 +4,9 @@ date: 2026-04-15
 description: "Goals, requirements, and how I ended up buying three Chuwi mini PCs for a total of 1390€."
 tags: ["homelab", "hardware", "proxmox", "kubernetes"]
 series: ["Homelab Diary"]
-ShowToc: false
+neso:
+  cover:
+    image: "ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"
 ---
 
 Yes, building any computer in 2026 is a painful experience for your wallet. Unfortunately, it won't get better any time soon (thanks, AI!), and it might even get worse, so we just have to grit our teeth and try to find the best deals possible.
@@ -43,7 +45,7 @@ Before doing deep research and trying to find the best options myself, I plug al
 
 In my case, I mentioned I'm living in the Netherlands, I am open to both used and new PCs, and don't mind less-known Chinese brands from Aliexpress, but only if they ship from the EU, so there are no import duties. I also mentioned that I want a barebone option because the included RAM and storage are usually overpriced and low quality. This is the output I got:
 
-![Output from Claude Opus 4.8 comparing mini PC options](/images/aff088a3-2a10-4813-b519-44179c5f8c0f.png)
+![Output from Claude Opus 4.8 comparing mini PC options](aff088a3-2a10-4813-b519-44179c5f8c0f.png)
 
 On most of these options, pricing was unfortunately quite off. The AOOSTAR was looking good, but in reality cost 500 EUR, so the best option seemed to be GMKtec K8, which was priced accurately. However, buying it 3 times would cost 1140€, and that is before the most expensive part of this purchase - RAM and storage, so I decided to do the research myself, and try to find something better.
 
@@ -63,7 +65,7 @@ There are more things I would like to add in the future, like a separate router 
 
 All the components are currently lying on my table, untouched, because I set writing this blog post as a prerequisite to start building the homelab; otherwise, it would probably be quite difficult to stop playing with the homelab and start writing, so with this out of the way, let's make this pile of components into a homelab. Wish me luck, and see you in the next part, where I will share my experience with using the strangely named mini PC as the core of my homelab!
 
-![All the parts laid out on the table](/images/6b284dfa-8be5-4f0c-ac13-924f40df692e.jpg)
+![All the parts laid out on the table](6b284dfa-8be5-4f0c-ac13-924f40df692e.jpg)
 
 The parts used in this build:
 

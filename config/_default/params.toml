@@ -1,0 +1,25 @@
+title = "Jakub Hovorka"
+description = "I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
+profilePicture = "images/jakub-hovorka.jpg"
+mainSections = ["posts"]
+rssFullContent = true
+customCss = ["css/custom.css"]
+
+[author]
+  name = "Jakub Hovorka"
+  email = "hovorkaobch@gmail.com"
+
+[[socialIcons]]
+  icon = "fa-brands fa-github"
+  title = "GitHub"
+  url = "https://github.com/jhovorka"
+
+[[socialIcons]]
+  icon = "fa-brands fa-linkedin"
+  title = "LinkedIn"
+  url = "https://www.linkedin.com/in/jakub-hovorka/"
+
+[[socialIcons]]
+  icon = "fa-solid fa-envelope"
+  title = "Email"
+  url = "mailto:hovorkaobch@gmail.com"

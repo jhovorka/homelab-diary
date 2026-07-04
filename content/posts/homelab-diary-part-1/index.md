@@ -4,7 +4,6 @@ date: 2026-04-01
 description: "On the threat of losing your ability to think, and why I started building a homelab."
 tags: ["homelab", "devops", "career"]
 series: ["Homelab Diary"]
-ShowToc: false
 ---
 
 In recent times, there has been a lot of buzz about AI replacing all kinds of IT professionals. From what I've seen, the consensus is that DevOps / Platform roles are mostly safe from this for many different reasons, some of which are that companies have a lot of technical debt or legacy tooling, which makes AI integration very difficult, or that DevOps / Platform engineers require very broad permissions, which, in the hands of AI, can be very dangerous and potentially devastating for the whole company.

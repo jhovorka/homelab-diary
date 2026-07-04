@@ -1,0 +1,7 @@
+/* Avoid a double border/gap between the embed's header chrome and
+   Anatole's own .chroma code panel underneath it. */
+.github-embed .highlight,
+.github-embed pre {
+  margin: 0;
+  border-radius: 0;
+}
