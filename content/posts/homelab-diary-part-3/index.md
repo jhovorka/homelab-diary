@@ -22,11 +22,15 @@ The parts used in this build (details about prices are in the previous part of t
 - Cat6a patch cables - 6 pieces - 0.3m - [https://www.amazon.nl/gp/product/B0DTYK6168](https://www.amazon.nl/gp/product/B0DTYK6168)
 - DIGITUS DN-95418-FR - 4-socket server rack power strip (not in the picture) - [https://www.amazon.nl/dp/B0BDMBYFJD](https://www.amazon.nl/dp/B0BDMBYFJD)
 
+## Assembling the Rack
+
 The first thing I need to do is assemble the server rack. I chose a small 10-inch desktop rack from a company called TecMojo, which I found on Amazon. There are 3 different heights available. I went with 9U, which is the middle one, and it's perfect for this project + some upgrades in the future.
 
 Putting the rack together was dead simple, all you need to do is connect the sides with 2 top parts and one bottom part, then screw in the laminate top, together with the handles, and you are done. The overall quality is very good.
 
 ![The assembled rack](f467ed22-04ce-4093-9154-5c721c754ca3.jpg)
+
+## Cable Management
 
 With the rack standing, the next step is to decide where to place the switch and the mini PCs, and mount the included shelves. There is one small one, which is normally used to mount Raspberry Pis, or two 2.5-inch drives. I don't plan to use any of that, so I decided to use it for the switch, which is about 1-2 mm too wide, but after applying some raw power, it fits well enough.
 
@@ -56,9 +60,13 @@ Which is better than I expected, but I wasn't satisfied, so I decided to order s
 
 ![Final cable management with short power cables](030eebe4-c704-49bc-820b-e7c5c70d6b89.jpg)
 
+## Installing RAM and SSDs
+
 The next step is to insert the RAM modules and the SSDs into all three mini PCs. This is, once again, very simple, just undo 4 Philips screws and place the RAM and SSD into the slot.
 
 ![Inserting RAM and SSD into the mini PC](fa2a9e70-8046-4667-b7aa-5213db9d8e73.jpg)
+
+## Installing Proxmox
 
 With that out of the way, it's time to set up the virtualization layer. In the previous post, I mentioned that I plan to experiment with OpenStack. The ideal way to do this would be to deploy a Linux OS, such as Debian, on each PC and then install OpenStack directly on top of it.
 

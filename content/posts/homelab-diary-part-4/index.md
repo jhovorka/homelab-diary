@@ -14,6 +14,8 @@ Let's start with OpenTofu. To keep the whole setup modular and reusable, I will 
 
 My first goal is to be able to create, and maintain Kubernetes clusters. I am a big fan of Talos Linux, so that's what my Kubernetes clusters will run on. Lucky for me, there is [siderolabs/talos OpenTofu provider](https://search.opentofu.org/provider/siderolabs/talos/v0.11.0), which from my experience is really good. Before I can do anything, I first need to spin up the infrastructure for the clusters, which I will do on Proxmox. There are multiple Proxmox OpenTofu providers, but the best one from my experience is the [bpg/proxmox](https://search.opentofu.org/provider/bpg/proxmox/v0.111.0), so that's what I will be using.
 
+## Images
+
 The very first module I need is the one to download Talos images on to the Proxmox nodes. The module is fairly simple, I retrieve the image URL, by specifying a Talos version, and extensions I need to include in the image, and then use the URL to download the image to the Proxmox nodes. This is the module:
 
 {{< github repo="hovorka-labs/iac-modules" path="/terraform/modules/proxmox/images/talos/main.tf" commit="blog/homelab-diary-part4" >}}
@@ -21,6 +23,8 @@ The very first module I need is the one to download Talos images on to the Proxm
 And here's an example of how to use the module:
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part4" lines="12-27" >}}
+
+## Virtual Machines
 
 The next module I need is the one to create the VMs on Proxmox. I've built this module over the last 2 years, and I think it's fairly flexible, and sufficient for all the standard use cases. The module looks like this:
 
@@ -30,7 +34,7 @@ And here are the variables:
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/proxmox/virtual-machines/variables.tf" commit="blog/homelab-diary-part4" >}}
 
-There isn't anything particularly exotic in this module, most of the things are just standard Proxmox VM attributes but there are a few things I want to point out. First is the virtual_machines variable, which as you might see, is the only variable in this module, and it has a lot of different fields nested in it. This approach allows us to only initiate the module once, no matter if we want to create 1 VM, or 100 VMs. This is especially useful for K8s clusters, where all VMs have very similar parameters that would otherwise have to be redefined for every single one.
+There isn't anything particularly exotic in this module, most of the things are just standard Proxmox VM attributes but there are a few things I want to point out. First is the virtual_machines variable, which as you might see, is the only variable in this module, and it has a lot of different fields nested in it. This approach allows us to only initiate the module once, no matter if we want to create 1 VM, or 100 VMs. This is especially useful for K8s clusters, where all VMs have very similar attributes that would otherwise have to be redefined for every single one.
 
 The second thing worth pointing out is the recreation_hash field. It feeds into a small terraform_data resource that the VM is tied to through replace_triggered_by in its lifecycle block, so changing that one value is enough to force the VM to be destroyed and recreated, without needing any of its actual settings to change. In the previous iteration of this setup, I used it to hash the Talos image the VM was cloned from, so pointing it at a newly built image would force the VM to be recreated with it - that's basically how I used to do Talos upgrades, by replacing the image and letting the VM get rebuilt. I've since switched to running talosctl upgrade through a local_exec instead, because it's a lot less hassle, so I don't actually use recreation_hash on this module anymore. I'm keeping the field around anyway, since it's still a useful way to force a recreation without having to change some unrelated argument just to trigger it.
 

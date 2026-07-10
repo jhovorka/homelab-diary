@@ -19,6 +19,8 @@ To determine what hardware you need for your homelab, it's important to first se
 
 To show you what this process looks like in real life, I will share exactly how I did it. I have a few goals, some non-negotiable and some nice-to-haves. Let's start with the non-negotiables.
 
+## Goals and Requirements
+
 The foundation of the whole setup is Proxmox. I want to build a single highly available Proxmox cluster, and that alone covers a big chunk of what I'm after - hands-on experience with on-prem virtualization, clustering, live migration, and failover.
 
 On top of Proxmox sits goal number one: running one or more highly available Kubernetes clusters, mostly using Talos Linux, but I want to experiment with other distributions too. These clusters need enough resources to host the tools I actually care about: GitOps (ArgoCD / Flux), observability (Prometheus / Loki / Thanos / Grafana), S3-compatible storage (MinIO / Garage), identity providers (Authentik / Keycloak), a container registry (Harbor), and plenty more. The nice thing is this gives me HA at two layers - the Proxmox cluster underneath, and the Kubernetes control plane and workloads on top.
@@ -31,6 +33,8 @@ Running through all of this is a broader goal: getting genuinely better at on-pr
 
 I also have some nice-to-haves. One is the possibility to plug in an external GPU for local AI on Kubernetes, and the other is the possibility of running a Ceph cluster.
 
+## Hardware Specs
+
 When it comes to requirements for the actual homelab hardware, it should be compact, not occupy a lot of space, draw as little energy as possible, be relatively quiet, future-proof, and offer the best value per price ratio. These goals and requirements are quite tough, and it's not going to be easy to build for cheap, but I like a good challenge.
 
 With the goals and requirements set, the next thing I did was prepare the minimum specifications for the homelab PCs. My requirements completely ruled out servers and desktop builds because of the compactness, quietness, and low power draw. That leaves us with pretty much the only option, which is mini PCs, like Asus NUC, Lenovo Tiny, and others.
@@ -40,6 +44,8 @@ Regarding the Kubernetes cluster(s) goal, in the past, I already tried running m
 The rest of the goals all come down to the resource requirements. Running Ceph, OpenStack, and K8s cluster(s) will require a significant amount of resources. However, I don't need to have everything running all at once, so for the resource requirements of a single mini PC, I aim for a CPU with a minimum of 8 physical cores, min. 64GB DDR5 RAM capacity, and at least two M.2 SSD slots.
 
 For the nice-to-haves, it would be nice to have two 2.5Gbps Ethernet ports, so I can dedicate one port for storage / Ceph traffic, and keep the other for workload network. And it would also be nice if the mini PCs had an OCuLink port, so I could plug in an external GPU.
+
+## Choosing the Mini PC
 
 Before doing deep research and trying to find the best options myself, I plug all that information into Claude, and ask for a table showing multiple mini PC options, all the requirements they match/don't match, and how much they cost. It's important to mention what country you are buying the hardware in, if you want to buy everything new or used, and whether you are open to buying less-known Chinese brands on sites like Aliexpress, because the results will wildly differ based on where in the world you are.
 
@@ -53,9 +59,13 @@ After a few days of scouring the internet, I settled down on 2 options. One opti
 
 Reassured by the 30-day money-back guarantee, I decided to pull the trigger on this one and ordered 3 pieces. It arrived without any issues, and I will test them and share my findings in the next part of this series. I mentioned that I am open to used hardware as well, but because of my very specific requirements, and the already very low price of the Chuwi mini PC, it did not make sense to buy used.
 
+## RAM and Storage
+
 Where buying used made sense was the RAM and SSDs. If you are reading this in 2026, you probably know that the prices of these components are absolutely insane. To put this into perspective, for this build, I want to start with 3x 32GB DDR5 RAM sticks and 3x 512GB M.2 SSDs, with a plan of adding 3 more 32GB sticks and 3 more 1TB SSDs later. If I were to decide to buy it new, it would cost me eye-watering 915€ for the three RAM sticks, and 300€ for the three 0.5TB SSDs. One year ago, this would have been about half the price.
 
 Because of that, I decided to watch Marktplaats (the Dutch version of eBay) like a hawk for a few weeks, and I managed to get the 3 RAM sticks for 470 EUR and 3 0.5TB SSDs for 140 EUR. **The total cost of buying the 3 mini PCs with a total of 96GB DDR5 RAM and 1.5TB SSD storage was 1390€ incl. shipping.**
+
+## Rack and Networking Extras
 
 With this, I got almost everything I need to start building, but I decided to go with a few extras. One thing that's almost a non-negotiable is a networking switch. Each mini PC has 2 ports supporting a speed of up to 2.5Gbps. There are switches you can get very cheap but most of them are only 1Gbps, which would most likely be fine for my use case, but I didn't want to risk it, so I decided to go for an 8-port version of Ubiquiti Flex 2.5G, which I managed to find used for 130€. Other, cheaper alternatives also support 2.5Gbps speeds and have 8 ports, but I decided to go with this one because of its clean UniFi interface, the USB-C power option, and the room to grow it gives me down the line.
 
