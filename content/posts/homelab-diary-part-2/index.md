@@ -4,6 +4,8 @@ date: 2026-04-15
 description: "Goals, requirements, and how I ended up buying three Chuwi mini PCs for a total of 1390€."
 tags: ["homelab", "hardware", "proxmox", "kubernetes"]
 series: ["Homelab Diary"]
+thumbnail: "ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"
+images: ["images/ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"]
 neso:
   cover:
     image: "ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"

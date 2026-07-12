@@ -1,0 +1,35 @@
+{{- /*
+  Resizes+recompresses images that are page-bundle resources (the common
+  case for this site's photos, which land at several MB straight off a
+  phone) to a sane max width, converted to webp. Falls back to a plain
+  <img> for anything that isn't a matching page resource (external URLs).
+*/}}
+{{- $img := .Page.Resources.GetMatch .Destination }}
+{{- if $img }}
+  {{- $maxWidth := 1600 }}
+  {{- $targetWidth := $maxWidth }}
+  {{- if lt $img.Width $maxWidth }}
+    {{- $targetWidth = $img.Width }}
+  {{- end }}
+  {{- $resized := $img.Resize (printf "%dx webp q82" $targetWidth) }}
+  <img
+    src="{{ $resized.RelPermalink }}"
+    width="{{ $resized.Width }}"
+    height="{{ $resized.Height }}"
+    alt="{{ .Text }}"
+    loading="lazy"
+    decoding="async"
+    {{- with .Title }}
+      title="{{ . }}"
+    {{- end }}
+  />
+{{- else }}
+  <img
+    src="{{ .Destination | safeURL }}"
+    alt="{{ .Text }}"
+    loading="lazy"
+    {{- with .Title }}
+      title="{{ . }}"
+    {{- end }}
+  />
+{{- end -}}

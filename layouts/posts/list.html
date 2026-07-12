@@ -1,0 +1,48 @@
+{{ define "main" }}
+  <div
+    class="archive {{ with .Site.Params.doNotLoadAnimations }}
+      .
+    {{ else }}
+      animated fadeInDown
+    {{ end }}"
+  >
+    {{ range .Data.Pages.GroupByDate "2006" }}
+      <div class="archive__heading">{{ .Key }}</div>
+      <ul class="archive__list">
+        {{ range .Pages }}
+          <li class="archive__list-item">
+            <a
+              class="archive__list-title"
+              href="{{ .RelPermalink }}"
+              title="{{ .Title }}"
+              >{{ if (eq $.Site.Params.disableArchiveTitleStyling true) }}{{ .Title }}{{ else }}{{ upper .Title }}{{ end }}</a
+            >
+            <div class="archive__list-date">
+              {{ if isset $.Site.Params "listdateformat" }}
+                {{ if $.Site.Params.localizedDates }}
+                  {{ time.Format $.Site.Params.listDateFormat .Date }}
+                {{ else }}
+                  {{ .Date.Format $.Site.Params.listDateFormat }}
+                {{ end }}
+              {{ else }}
+                {{ if $.Site.Params.localizedDates }}
+                  {{ time.Format "Jan 2" .Date }}
+                {{ else }}
+                  {{ .Date.Format "Jan 2" }}
+                {{ end }}
+              {{ end }}
+            </div>
+            {{ with .Description }}
+              <p class="archive__list-description">{{ . }}</p>
+            {{ end }}
+            {{ with .Params.Tags }}
+              <div class="archive__list-tags">
+                {{ partial "taxonomy/tags.html" . }}
+              </div>
+            {{ end }}
+          </li>
+        {{ end }}
+      </ul>
+    {{ end }}
+  </div>
+{{ end }}

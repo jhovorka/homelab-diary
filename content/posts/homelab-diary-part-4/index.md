@@ -18,7 +18,7 @@ My first goal is to be able to create, and maintain Kubernetes clusters. I am a 
 
 The very first module I need is the one to download Talos images on to the Proxmox nodes. The module is very simple, I just retrieve the image URL, by specifying a Talos version, and the extensions I need to include in the image, and then use the URL to download the image to the Proxmox nodes.
 
-{{< github repo="hovorka-labs/iac-modules" path="/terraform/modules/proxmox/images/talos/main.tf" commit="blog/homelab-diary-part4" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/proxmox/images/talos/main.tf" commit="blog/homelab-diary-part4" >}}
 
 
 ## Virtual Machines

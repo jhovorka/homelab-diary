@@ -4,6 +4,8 @@ date: 2026-05-01
 description: "Assembling the rack, installing RAM and SSDs, and getting Proxmox up and running on three Chuwi mini PCs."
 tags: ["homelab", "hardware", "proxmox", "networking"]
 series: ["Homelab Diary"]
+thumbnail: "a29405c2-1b68-4556-9905-db48e58ec036.png"
+images: ["images/a29405c2-1b68-4556-9905-db48e58ec036.png"]
 neso:
   cover:
     image: "a29405c2-1b68-4556-9905-db48e58ec036.png"

@@ -4,7 +4,7 @@ title = "Jakub Hovorka"
 theme = "anatole"
 paginate = 10
 
-summarylength = 30
+summarylength = 45
 enableEmoji = true
 enableRobotsTXT = true
 

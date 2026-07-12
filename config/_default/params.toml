@@ -1,10 +1,11 @@
 title = "Jakub Hovorka"
-description = "I write about homelabbing, on-prem infrastructure, and keeping the ability to think for yourself in the age of AI."
+description = ""
 profilePicture = "images/jakub-hovorka.jpg"
 mainSections = ["posts"]
 rssFullContent = true
-customCss = ["css/custom.css"]
 contentratio = 0.7
+customJs = ["js/copy-code.js"]
+images = ["images/jakub-hovorka.jpg"]
 
 [author]
   name = "Jakub Hovorka"
