@@ -1,7 +1,7 @@
 ---
-title: "Homelab Diary Part 4: Time to lay down the foundation"
+title: "Homelab Diary Part 4: Talos, Minus the Manual Work"
 date: 2026-07-01
-description: "Setting up the foundation for all the experiments."
+description: "Bootstrapping and upgrading a Talos Kubernetes cluster without ever running talosctl by hand."
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
 ---
@@ -14,14 +14,14 @@ Let's start with OpenTofu. To keep the whole setup modular and reusable, I will 
 
 My first goal is to be able to create, and maintain Kubernetes clusters. I am a big fan of Talos Linux, so that's what my Kubernetes clusters will run on. Lucky for me, there is [siderolabs/talos OpenTofu provider](https://search.opentofu.org/provider/siderolabs/talos/v0.11.0), which from my experience is really good. Before I can do anything, I first need to spin up the infrastructure for the clusters, which I will do on Proxmox. There are multiple Proxmox OpenTofu providers, but the best one from my experience is the [bpg/proxmox](https://search.opentofu.org/provider/bpg/proxmox/v0.111.0), so that's what I will be using. I will first go over all the modules, and in the end, I will show an example of how to wire them all together in a nice, scalable way.
 
-## Images
+## Proxmox - Images
 
 The very first module I need is the one to download Talos images on to the Proxmox nodes. The module is very simple, I just retrieve the image URL, by specifying a Talos version, and the extensions I need to include in the image, and then use the URL to download the image to the Proxmox nodes.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/proxmox/images/talos/main.tf" commit="blog/homelab-diary-part4" >}}
 
 
-## Virtual Machines
+## Proxmox - Virtual Machines
 
 The next module I need is the one to create the VMs on Proxmox. I've built this module over the last 2 years, and I think it's pretty flexible, and sufficient for all the standard use cases. The module looks like this:
 
@@ -41,34 +41,64 @@ Third is the cdrom block, which defaults to interface ide3 instead of the more o
 
 This is the last module I need for this part, and there is a lot to unpack here. If you are familiar with the Talos cluster creation process, this is basically it, just transformed from individual talosctl commands to OpenTofu code. Before that though, the module opens with a bit of Terraform-only plumbing that has no talosctl equivalent: config_trigger, which is similar to the recreation_hash field in the previous module. Its purpose is to force a node's machine config to be reapplied on demand, without needing some unrelated setting to change first, e.g. when the node's underlying VM gets rebuilt but nothing about its Talos config actually changed.
 
-Later in the module, there is a similar thing called bootstrap_trigger, which does the same trick but for the talos_machine_bootstrap resource instead of the config apply. The difference is that it only cares about the first control plane node's own config_trigger, and ignores every other node. That's on purpose: bootstrapping is a one-time, whole-cluster action tied specifically to that first control plane node, so it should only ever fire again if that exact node gets rebuilt, not whenever any random worker in the cluster does.
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="1-8" >}}
 
-After the config_trigger, we have the talos_machine_secrets resource, which generates the secrets shared by the whole cluster. Then we have talos_client_configuration, which generates a talosconfig for the whole cluster, talos_machine_configuration, which generates a machine config for each node, and talos_machine_configuration_apply, which applies the machine config to each node. Once all that is sorted, there is the bootstrap_trigger I mentioned earlier, and then talos_machine_bootstrap which finally runs the cluster bootstrap. Once the cluster is bootstrapped, we confirm that it becomes healthy using the talos_cluster_health data source, and we retrieve the kubeconfig using the talos_cluster_kubeconfig resource. The very last thing is the terraform_data resource called upgrade. On the Terraform side, it's triggered whenever installer_image_url changes for a node, but the provisioner itself does a second check before actually running anything: it queries the node's current running version, and only calls talosctl upgrade if that version doesn't already match the target.
+Later in the module, there is a similar thing called bootstrap_trigger, which does the same trick but for the talos_machine_bootstrap resource instead of the config apply. The difference is that it only cares about the first control plane node (whichever one happens to come first in the nodes map) and its own config_trigger, and ignores every other node. That's on purpose: bootstrapping is a one-time, whole-cluster action tied specifically to that first control plane node, so it should only ever fire again if that exact node gets rebuilt, not whenever any random worker in the cluster does.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="42-46" >}}
+
+After the config_trigger, we have the talos_machine_secrets resource, which generates the secrets shared by the whole cluster. Then we have talos_client_configuration, which generates a talosconfig for the whole cluster, talos_machine_configuration, which generates a machine config for each node, and talos_machine_configuration_apply, which applies the machine config to each node.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="10-40" >}}
+
+Once all that is sorted, there is the bootstrap_trigger I mentioned earlier, and then talos_machine_bootstrap, which finally runs the cluster bootstrap.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="48-57" >}}
+
+Once the cluster is bootstrapped, we confirm that it becomes healthy using the talos_cluster_health data source, and we retrieve the kubeconfig using the talos_cluster_kubeconfig resource. The very last thing is the terraform_data resource called upgrade. On the Terraform side, it's triggered whenever installer_image_url changes for a node, but the provisioner itself does a second check before actually running anything: it queries the node's current running version, and only calls talosctl upgrade if that version doesn't already match the target.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="59-131" >}}
 
 Just like the VM module, everything here is driven by two variables:
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/variables.tf" commit="blog/homelab-diary-part4" >}}
 
-cluster holds the settings that are the same for every node in the cluster, like the cluster name, the pod and service subnets, or whether kube-proxy should be disabled because I'm going to run Cilium instead. nodes is a map, same idea as virtual_machines in the previous module, where the key becomes the node's identity and the value holds everything specific to that one node, like its IP, MAC address, and whether it's a controlplane or a worker.
+The cluster variable holds the settings shared by every node in the cluster - things like the cluster name, the pod and service subnets, or whether kube-proxy should be disabled because Cilium is handling that instead. The nodes variable is a map, same idea as virtual_machines in the previous module: the key becomes the node's identity, and the value holds everything specific to that one node, like its IP, MAC address, and whether it's a controlplane or a worker.
 
-One thing I want to point out is that cluster has both a name and a region field, which might look redundant at first. name is the actual Talos cluster name used for cluster registration, while region only ends up in a topology.kubernetes.io/region node label. I split them because I don't necessarily want my Talos cluster name and my topology region to be coupled together, especially since I plan on running more than one cluster later on, possibly spread across more than one physical location.
+One thing worth pointing out is that cluster has both a name and a region field. The name field is the actual Talos cluster name, used for cluster registration, while the region field only ends up in a topology.kubernetes.io/region node label. The region field is important because the Proxmox CSI plugin uses it for volume topology matching, and it has to match the Proxmox cluster the VM is on - when I originally had it coupled to the Talos cluster's own name, the CSI plugin just didn't work. The name field is still useful on its own too: if I ever run two Talos clusters on the same physical Proxmox cluster, each can get its own name, while both still report the same region, since Proxmox CSI only cares about the physical cluster a node lives on.
 
-The actual machine config isn't written directly in main.tf, it's assembled from a handful of .tftpl templates under templates/machine-config, one shared by every node, and one each for control planes and workers, all combined into config_patches. Here is the control plane template, which is the more interesting one of the two:
+With the variables out of the way, most of the actual logic lives in locals.tf, which does all the prep work before main.tf ever touches a resource. talos_api_ips is a small one, but sets up a pattern I reuse a few times: it defaults to each node's own IP, but can be overridden per node via talos_api_ip. I added this so the module also works on something like Hetzner later, where a node's private cluster IP and the address you'd actually reach its Talos API on can be different.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="1-13" >}}
+
+cluster_endpoint is the more interesting one. Every machine config needs a cluster_endpoint to be considered valid, but before the cluster exists there's no external load balancer or DNS record pointing at it yet. So it falls back through three options: an explicit cluster.endpoint override first, then cluster.vip, and only then the first control plane node's own IP if neither is set. A brand new single-node cluster works with nothing configured, and a proper HA setup is just a matter of setting one variable.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="15-21" >}}
+
+kubelet_extra_args merges two unrelated things into the same map. node_taints exists because of a NodeRestriction quirk: my first instinct was to taint nodes through a machine.nodeTaints patch, but Kubernetes blocks a kubelet from changing its own node's taints once it has registered, so that patch just gets rejected. The only thing that reliably works is passing the taints at kubelet startup, via --register-with-taints, so node_taints gets turned into a kubelet extraArg instead. provider_id, sitting right next to it, is unrelated - it sets kubelet's --provider-id flag so a cloud controller manager can match a node back to its cloud instance, e.g. hcloud://<id> for Hetzner. I don't use it on Proxmox since there's no CCM here, but I want the module to also work on Hetzner eventually, so the field stays in and just stays unset in this homelab.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="23-37" >}}
+
+gateway_api_manifests is just a couple of Gateway API CRD URLs baked into every cluster's extraManifests, so they exist before Kubernetes even comes up. I found out why that timing matters the hard way: the ArgoCD Helm install I run right after the cluster comes up creates an HTTPRoute for itself, and if the Gateway API CRDs aren't there yet, that install just fails outright, before ArgoCD is even running to sort out the rest of the GitOps side. Baking the CRDs in this early means that race can never happen.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="39-45" >}}
+
+The last one, node_config_patches, is where all of that actually turns into a machine config, by combining a few .tftpl templates under templates/machine-config - one shared by every node, and one each for control planes and workers. I could have built these inline as nested yamlencode() blocks, but Talos machine configs get long and deeply nested fast, so having the YAML shape visible in its own file is a lot easier to read and diff.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="47-97" >}}
+
+Here's the control plane template, which is the more interesting of the two:
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/templates/machine-config/control-plane.yaml.tftpl" commit="blog/homelab-diary-part4" >}}
 
-Splitting the config into templates like this, instead of building it inline as a big yamlencode() block in main.tf, is mostly for my own sanity. Talos machine configs get long and deeply nested fast, and having the actual YAML shape visible in its own file is a lot easier to read and diff than the equivalent nested Terraform maps would be.
+A few fields in there are worth calling out individually. certSANs is where vip and api_server_extra_sans actually land, so the kube-apiserver's TLS cert covers whatever address I end up hitting it through, VIP or otherwise, instead of just the node's own IP. api_server_config gets merged in right after, using indent(4, api_server_config) so whatever raw YAML I pass in lines up correctly under apiServer: - that's the escape hatch for things like OIDC flags I didn't want to build a dedicated variable for.
 
-The vip field is worth a closer look too, since it's used in two different ways. It shows up in the machine config as an actual keepalived VIP assigned to the control plane's network interface, but it's also used as a fallback for the cluster's own API endpoint. Every machine config needs to know a cluster_endpoint to be considered valid, and before the cluster exists, there is no external load balancer or DNS entry yet, so the module falls back through cluster.endpoint, then cluster.vip, and only then the first control plane node's own IP if neither is set. That means a brand new single-node cluster works out of the box with nothing configured, and a proper HA setup with a VIP or an external endpoint is just a matter of setting one variable.
+allowSchedulingOnControlPlanes and externalCloudProvider are both plain on/off switches, off by default, on when I actually need them - a single control plane node needs scheduling allowed on itself, and something like Hetzner needs externalCloudProvider enabled for its CCM to work. cni is hardcoded to none on purpose: Talos would happily install Flannel for me, but I always replace it with Cilium afterward anyway, so there's no point letting Talos install a CNI just to immediately tear it back out.
 
-There's also a small quirk with node_taints that took me a while to figure out. My first instinct was to just add taints through a machine.nodeTaints patch like everything else, but Kubernetes' NodeRestriction admission plugin blocks a kubelet from modifying its own node's taints after it has already registered, and machine.nodeTaints patches run into exactly that. The only mechanism that reliably works is passing the taints at kubelet startup itself, via --register-with-taints, so node_taints gets turned into kubelet extraArgs instead of a config patch. It's a good example of something that looks like it should be trivial to configure, but ends up requiring you to understand a Kubernetes admission controller to actually get right.
+The network block is the same three-way fallback in both templates: use DHCP if use_dhcp is set, use a named interface if interface_name is set, or fall back to matching the interface by MAC address via deviceSelector. That last option exists because Proxmox doesn't guarantee predictable interface names across reboots, so pinning to a MAC address is the more reliable choice in a homelab. On a control plane node, the VIP shows up a second time here too, this time assigned directly to the interface through Talos's own keepalived integration, not just referenced in the cert.
 
-You'll also notice provider_id sitting right next to node_taints in that same extraArgs map, which sets kubelet's --provider-id flag. That one isn't for Proxmox at all, it's there so a cloud controller manager can match a Kubernetes Node back to its cloud instance, e.g. hcloud://<id> for Hetzner's CCM. I don't use it in this homelab since Proxmox has no CCM in the picture, but I wanted this module to also work if I ever spin up nodes on Hetzner, so I left the field in and it just stays unset here.
+The worker template follows the same shape, just without the control plane specific bits like the VIP or the API server config - it's mostly just network setup and a sysctl bump for vm.max_map_count, which most memory-mapped-heavy workloads (Elasticsearch, OpenSearch, various vector databases) expect to already be raised, so I just set it cluster-wide on workers instead of chasing it down per app later.
 
-The last interesting piece is how upgrades work. As I mentioned in the previous section, I used to force a VM rebuild by pointing recreation_hash at a freshly built Talos image, and let the reinstall handle the upgrade. That worked, but it meant every upgrade also meant reprovisioning the whole VM, which is a lot of unnecessary churn for something that should just be a version bump. The Talos OpenTofu provider doesn't have a native upgrade resource, so instead I shell out to talosctl directly through a local-exec provisioner, keyed off each node's installer_image_url. The script first checks what version the node is already running, and skips the upgrade entirely if it already matches, which matters because otherwise a brand new node would try to "upgrade" itself to the exact version it was just bootstrapped with.
+The module finishes off with three outputs: talosconfig and kubeconfig, so I can talk to the cluster with talosctl and kubectl right away, and machine_configs, in case I ever need to inspect what actually got sent to a node. All three are marked sensitive, since none of them are things I want showing up in a plan output or CI log.
 
-The module finishes off with three outputs: talosconfig and kubeconfig, so I can talk to the cluster with talosctl and kubectl right after apply, and machine_configs, which exposes the rendered config for every node in case I ever need to inspect or debug what actually got sent to a machine. All three are marked sensitive, since none of them are things I want showing up in a plan output or CI log.
-
-That's all three modules covered, images, virtual machines, and now Talos itself. In the next section, I'll finally show how all of them wire together into an actual running cluster.
+That's three modules covered - images, virtual machines, and now Talos itself. Next up, I'll show how all of them wire together into an actual running cluster.
