@@ -102,3 +102,21 @@ The worker template follows the same shape, just without the control plane speci
 The module finishes off with three outputs: talosconfig and kubeconfig, so I can talk to the cluster with talosctl and kubectl right away, and machine_configs, in case I ever need to inspect what actually got sent to a node. All three are marked sensitive, since none of them are things I want showing up in a plan output or CI log.
 
 That's three modules covered - images, virtual machines, and now Talos itself. Next up, I'll show how all of them wire together into an actual running cluster.
+
+## Putting It All Together
+
+This lives in the repo as its own example, terraform/examples/talos-on-proxmox, and it's deliberately minimal - just the three modules from this post, wired together into a cluster that actually boots. No Cilium, no Proxmox CSI, no GitOps bootstrap yet - those are all separate concerns I'm saving for future parts of this series, so this example stays focused on just standing up the infrastructure and the cluster itself.
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part4" >}}
+
+Three steps, in order: download the Talos image, provision a VM per node from that image, then bootstrap Talos on top of the VMs. The one detail worth pointing out is how mac_address gets into the Talos node config - it's not a variable I set anywhere, it's read straight back out of module.vms.mac_addresses. Proxmox assigns the MAC when the VM gets created, and the Talos module just needs to be told the same address so its deviceSelector can match the right NIC. No manual MAC pinning, no coordinating two separate values by hand.
+
+That same value doubles as recreation_hash too:
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/locals.tf" commit="blog/homelab-diary-part4" lines="60-79" >}}
+
+If the VM ever gets rebuilt without an explicit MAC pinned, Proxmox hands it a new one, which changes mac_address, which changes recreation_hash, which forces the Talos module to reapply config to match. One value doing double duty instead of two things I'd have to keep in sync by hand.
+
+The rest is just plumbing: talos_cluster_name, k8s_version, and gateway_api_version are new variables feeding cluster.name, nodes[*].k8s_version, and cluster.gateway_api_version. region just reuses the cluster name for now, since nothing in this example actually reads it yet - that only starts to matter once Proxmox CSI gets wired in.
+
+Running tofu apply against this gets me a Talos cluster with a working control plane and a kubeconfig/talosconfig I can pull straight out of the outputs. What it doesn't get me yet is a cluster that can actually run anything, since there's still no CNI installed - that's next.
