@@ -15,6 +15,7 @@ $themes: (
     success: var.$success,
     warning: var.$warning,
     danger: var.$danger,
+    code: var.$code--lightmode,
   ),
   dark: (
     accent: var.$accent--darkmode,
@@ -29,6 +30,7 @@ $themes: (
     success: var.$success,
     warning: var.$warning,
     danger: var.$danger,
+    code: var.$code--darkmode,
   ),
 );
 

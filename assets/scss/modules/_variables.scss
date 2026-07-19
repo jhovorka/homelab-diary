@@ -30,5 +30,11 @@ $warning: #ffc107;
 $success: #51d88a;
 $danger: #ef5753;
 
+// Inline code (Slack-style pill: colored text on a gray capsule) — its own
+// token rather than reusing $warning, so it doesn't borrow the alert color's
+// meaning for something that shows up constantly in body text.
+$code--lightmode: #c2410c;
+$code--darkmode: #f0a875;
+
 $thumbnail-height: 15em;
 $body-max-width: 1920px;

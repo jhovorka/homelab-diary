@@ -70,6 +70,21 @@ h6,
   text-underline-offset: 2px;
 }
 
+// Inline code as a small pill (Slack/GitHub-style): colored text on a gray
+// capsule. Scoped to :not(pre) so it doesn't touch code inside the
+// highlighted code-panel blocks, which already have their own styling.
+.post__content :not(pre) > code {
+  padding: 0.15em 0.45em;
+  border-radius: 999px;
+  font-size: 0.9em;
+  white-space: nowrap;
+
+  @include color.themed() {
+    background-color: color.t('primary-lighter');
+    color: color.t('code');
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Tags / categories.
 // ---------------------------------------------------------------------------
