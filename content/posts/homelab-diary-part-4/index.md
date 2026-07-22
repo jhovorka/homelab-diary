@@ -45,7 +45,7 @@ This is the last module I need for this part, and there is a lot to unpack here.
 
 Later in the module, there is a similar thing called `bootstrap_trigger`, which does the same trick but for the `talos_machine_bootstrap` resource instead of the config apply. The difference is that it only cares about the first control plane node (whichever one happens to come first in the `nodes` map) and its own `config_trigger`, and ignores every other node. That's on purpose: bootstrapping is a one-time, whole-cluster action tied specifically to that first control plane node, so it should only ever fire again if that exact node gets rebuilt, not whenever any random worker in the cluster does.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="167-171" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="172-176" >}}
 
 After the `config_trigger`, there is the `talos_machine_secrets` resource, which generates the secrets shared by the whole cluster. Then there is `talos_client_configuration`, which generates a talosconfig for the whole cluster, and `talos_machine_configuration`, which generates a machine config for each node. `talos_machine_configuration_apply` applies that config, but only to workers - control planes go through a separate resource I'll get to next, since applying config to a control plane turns out to be a riskier operation than it looks.
 
@@ -55,11 +55,11 @@ Control planes don't get the same treatment, because any machine config change o
 
 There are two wrinkles in there worth calling out. The first is that on a brand new cluster, etcd can't be healthy anywhere yet - `talos_machine_bootstrap` only runs after this resource finishes - so the health gate only kicks in once an already-healthy cluster is detected up front. On a genuine first bootstrap, every control plane still gets its config applied in order, there's just nothing valid to check in between yet. The second is that a node which has never had a config pushed to it only speaks Talos's insecure maintenance API, not the authenticated one every other call in this module uses. The script tries the normal authenticated call first and only falls back to `--insecure` if that fails with the specific certificate error Talos returns when a node isn't running an authenticated API yet.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="47-165" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="47-170" >}}
 
 Once every node has its config applied - workers directly, control planes through the sequenced resource above - there is the `bootstrap_trigger` I mentioned earlier, and then `talos_machine_bootstrap`, which finally runs the cluster bootstrap.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="167-185" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="172-190" >}}
 
 Once the cluster is bootstrapped, I confirm that it becomes healthy using the `talos_cluster_health` data source, and retrieve the kubeconfig using the `talos_cluster_kubeconfig` resource. The very last thing is the `terraform_data` resource called `upgrade` - the same shape as `control_plane_config_apply` above and for the same reason, a single resource for the whole cluster rather than one per node.
 
@@ -67,7 +67,7 @@ That's on purpose. The provider has no native upgrade resource, so this shells o
 
 I originally waited on `talosctl upgrade`'s own `--wait` flag, and separately on `talosctl health` for the cluster-wide check - but both of those also wait on Kubernetes reporting the node `Ready`, which never happens without a CNI installed, and this module has no opinion on whether one exists. So both got replaced with checks the module actually owns: polling `talosctl version` to confirm the node came back on the right image, then polling `talosctl service etcd` across every control plane before moving on to the next node. That etcd check is what actually enforces the one-at-a-time behavior - a node only starts upgrading once the previous one has finished rebooting and etcd is healthy across the whole cluster again.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="219-327" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="224-337" >}}
 
 Just like the VM module, everything here is driven by two variables:
 
