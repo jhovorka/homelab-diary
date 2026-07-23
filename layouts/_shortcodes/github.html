@@ -54,6 +54,13 @@
 
 {{- if not $lang }}
   {{- $lang = path.Ext $path | strings.TrimPrefix "." }}
+  {{- /* .tftpl etc. are template extensions layered on top of a real
+     language (e.g. control-plane.yaml.tftpl) - Chroma has no "tftpl"
+     lexer, so without this it falls back to a generic guess and most
+     tokens (including plain YAML booleans) lose their highlighting. */}}
+  {{- if eq $lang "tftpl" }}
+    {{- $lang = path.Ext (strings.TrimSuffix $path ".tftpl") | strings.TrimPrefix "." }}
+  {{- end }}
 {{- end }}
 
 {{- $totalLines := len (split (trim $content "\n") "\n") }}
