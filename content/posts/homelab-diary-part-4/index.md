@@ -75,19 +75,19 @@ Right after that comes `control_plane_ips` and `worker_ips`, both filtered and p
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="18-24" >}}
 
-`kubelet_extra_args` merges two unrelated things into the same map. `node_taints` exists because of a NodeRestriction quirk: my first instinct was to taint nodes through a `machine.nodeTaints` patch, but Kubernetes blocks a kubelet from changing its own node's taints once it has registered, so that patch just gets rejected. The only thing that reliably works is passing the taints at kubelet startup, via `--register-with-taints`, so `node_taints` gets turned into a kubelet extraArg instead. `provider_id`, sitting right next to it, is unrelated - it sets kubelet's `--provider-id` flag so a cloud controller manager can match a node back to its cloud instance, e.g. hcloud://<id> for Hetzner, or an equivalent for any other CCM. I don't use it on Proxmox since there's no CCM here, but I want the module to also work elsewhere eventually, so the field stays in and just stays unset in this homelab.
+`kubelet_extra_args` is a small one: `provider_id`, when set, becomes kubelet's `--provider-id` flag, so a cloud controller manager can match a node back to its cloud instance, e.g. hcloud://<id> for Hetzner, or an equivalent for any other CCM. I don't use it on Proxmox since there's no CCM here, but I want the module to also work elsewhere eventually, so the field stays in and just stays unset in this homelab.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="26-40" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="26-32" >}}
 
 `gateway_api_manifests` is just a couple of Gateway API CRD URLs baked into every cluster's `extraManifests`, so they exist before Kubernetes even comes up.
 
 The reason why I have this here is that I deploy everything with ArgoCD, so that's one of the first things I install onto the Kubernetes cluster. However, my ArgoCD deployment creates an HTTPRoute for itself, and if the Gateway API CRDs are not in the cluster yet, the ArgoCD Helm installation fails. That's why I decided to deploy and maintain the CRDs through OpenTofu instead.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="42-48" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="34-40" >}}
 
-The last one, `node_config_patches`, is where all of that actually turns into a machine config, by combining a few `.tftpl` templates under `templates/machine-config` - one shared by every node, and one each for control planes and workers. I could have built these inline as nested `yamlencode()` blocks, but Talos machine configs get long and deeply nested fast, so having the YAML shape visible in its own file is a lot easier to read and diff.
+The last one, `node_config_patches`, is where all of that actually turns into a machine config, by combining a few `.tftpl` templates under `templates/machine-config` - one shared by every node, and one each for control planes and workers - plus a couple of small inline patches for things that don't need their own template, like `node_taints` going straight in as a `machine.nodeTaints` patch when a node has any set. I could have built the templated parts inline as nested `yamlencode()` blocks too, but Talos machine configs get long and deeply nested fast, so having the YAML shape visible in its own file is a lot easier to read and diff.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="50-116" >}}
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="42-99" >}}
 
 Here's the control plane template, which is the more interesting of the two:
 
