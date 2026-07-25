@@ -41,8 +41,6 @@ This is the last module I need for this part, and there is a lot to unpack here.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="1-27" >}}
 
-That unsequenced part is a deliberate choice, not an oversight. A config change on a control plane can restart kube-apiserver, controller-manager, and scheduler on that node - not always, depending on which part of the config actually changed, but the module has no way to know that in advance. Applying to every control plane at once therefore isn't strictly risk-free, but sequencing every config change one node at a time, gated on etcd staying healthy, would be a lot of machinery for a risk that mostly shows up during an actual OS upgrade, or when I'm specifically touching control plane components like the API server config - both of which already get exactly that treatment, through `scripts/upgrade-talos.sh` further down. Day-to-day config changes stay unsequenced across every node; I'm expected to know what a given change does before I hit apply.
-
 Once every node has its config applied, `talos_machine_bootstrap` runs the cluster bootstrap against the first control plane node - whichever one happens to come first in the `nodes` map.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="29-36" >}}
