@@ -22,6 +22,8 @@ The very first module I need is the one to download Talos images onto the Proxmo
 
 Worth clarifying early, since it trips people up: this OS image and the installer image you'll see referenced later (`installer_image_url`) aren't the same artifact. The OS image here is the ISO - boot media a VM reads once, on first boot, to install Talos onto its disk. The installer image is a container image (an OCI reference, e.g. `factory.talos.dev/installer/<schematic>:<version>`) that Talos pulls and runs internally, both during that same initial install and every time `talosctl upgrade` runs later - an upgrade doesn't re-attach an ISO, it just tells the already-running Talos to pull a new installer image and reinstall itself in place. Every `installer_image_url` from here on refers to that second thing, the installer image, not the ISO.
 
+That distinction has a real consequence for how I actually run this module day to day. The ISO is only ever read once per node, so downloading a fresh one every time `talos_version` changes - even when I'm not adding a node - is pure waste: a real network transfer and a real file sitting on Proxmox storage that nothing will ever read again. `download_iso` (default `true`) exists for exactly that: `installer_image` and `schematic_id` - the two outputs an already-running cluster actually needs, to declare a new upgrade target - come from Image Factory API calls that don't depend on the ISO having been downloaded at all, so skipping the download costs nothing. I set it to `false` for routine version bumps, and only flip it back to `true` while actually provisioning a new node or a fresh cluster.
+
 
 ## Virtual Machines
 
