@@ -70,7 +70,7 @@ Both only ever run against an already-bootstrapped, already-running cluster, so 
 One thing worth being careful about: the two subcommands expect the opposite order relative to Terraform. For `upgrade-talos`, Terraform goes first - bump `installer_image_url` and `tofu apply`, then run the script. For `upgrade-k8s`, the script goes first - `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is, so run it against the real cluster, confirm it worked, and only then bump `k8s_version` and apply, to sync the declaration with what's now actually running. `upgrade-k8s` also checks the cluster's actual current version against the target before doing anything - if they already match, that's a sign this ran already, or Terraform got applied out of order, so it stops and asks rather than silently proceeding. It can't check the Terraform side directly (`k8s_version` isn't part of this module's own output surface the way `installer_image_url` is, and the variable name is caller-specific), but the cluster's real state is something it can always check.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/hovorka-labs/iac-modules/scripts-v1.1.0/scripts/talos.sh -o talos.sh
+curl -fsSL https://raw.githubusercontent.com/hovorka-labs/iac-modules/scripts-v1.1.1/scripts/talos.sh -o talos.sh
 chmod +x talos.sh
 ```
 
@@ -134,7 +134,7 @@ This lives in the repo as its own example, `terraform/examples/talos-on-proxmox`
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part4" >}}
 
-Three steps, in order: download the Talos image, provision a VM per node from that image, then bootstrap Talos on top of the VMs. The one detail worth pointing out is how `mac_address` gets into the Talos node config - it's not a variable I set anywhere, it's read straight back out of `module.vms.mac_addresses`. Proxmox assigns the MAC when the VM gets created, and the Talos module just needs to be told the same address so its `deviceSelector` can match the right NIC. No manual MAC pinning, no coordinating two separate values by hand.
+Three steps, in order: look up the Talos image, provision a VM per node from it, then bootstrap Talos on top of the VMs. The one detail worth pointing out is how `mac_address` gets into the Talos node config - it's not a variable I set anywhere, it's read straight back out of `module.vms.mac_addresses`. Proxmox assigns the MAC when the VM gets created, and the Talos module just needs to be told the same address so its `deviceSelector` can match the right NIC. No manual MAC pinning, no coordinating two separate values by hand.
 
 Here's how that, and the rest of each node's Talos-facing config, comes together in `locals.tf`:
 
