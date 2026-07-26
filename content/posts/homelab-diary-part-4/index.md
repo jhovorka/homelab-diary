@@ -47,13 +47,22 @@ Once every node has its config applied, `talos_machine_bootstrap` runs the clust
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="blog/homelab-diary-part4" lines="29-36" >}}
 
-Once the cluster is bootstrapped, I confirm that it becomes healthy using the `talos_cluster_health` data source, and retrieve the kubeconfig using the `talos_cluster_kubeconfig` resource. That's it for `main.tf` - Talos OS upgrades are handled entirely outside it, by `scripts/upgrade-talos.sh`.
+Once the cluster is bootstrapped, I confirm that it becomes healthy using the `talos_cluster_health` data source, and retrieve the kubeconfig using the `talos_cluster_kubeconfig` resource. That's it for `main.tf` - both Talos OS and Kubernetes upgrades are handled entirely outside it, by `scripts/talos.sh`, which doesn't even live inside this module.
 
-An upgrade is a multi-minute, multi-node procedure - snapshot etcd, then one node at a time, health-gated between each - and that's a poor fit for a Terraform resource. Terraform's model is converging to a declared state, not running a multi-step imperative procedure, and doing the latter through a `local-exec` provisioner means the only way to abort cleanly is to not interrupt a `tofu apply` for several minutes - fragile by nature, since an interrupted apply can leave a node in an unknown state with no clean way to resume.
+An upgrade is a multi-minute, multi-node procedure - snapshot etcd, then proceed node by node, health-gated between each - and that's a poor fit for a Terraform resource. Terraform's model is converging to a declared state, not running a multi-step imperative procedure, and doing the latter through a `local-exec` provisioner means the only way to abort cleanly is to not interrupt a `tofu apply` for several minutes - fragile by nature, since an interrupted apply can leave a node in an unknown state with no clean way to resume.
 
-So Terraform only owns declaring each node's target `installer_image_url`, exposed - along with each node's reachable IP and role - through a `nodes` output. `scripts/upgrade-talos.sh` reads that declared state via `tofu output` and reconciles the real cluster to match it, one node at a time, entirely outside Terraform's execution model. Because it only ever runs against an already-bootstrapped, already-running cluster, it can afford to be thorough: it snapshots etcd before touching anything, checks Talos *and* Kubernetes-level health before starting, waits for each node to report `Ready` in Kubernetes before moving to the next, and avoids the cluster's VIP throughout - VIP reliability during a control-plane reboot varies by provider and network setup, so rather than assume either way, every check is pinned to a specific node instead, and never to the one currently being upgraded. It also uncordons the node it just upgraded, as a safety net in case a previous failed run left it cordoned - Talos already uncordons automatically after its own reboot, this is just insurance.
+So Terraform only owns declaring each node's target `installer_image_url`, exposed - along with each node's reachable IP and role - through a `nodes` output. Rolling that out to the real cluster is `scripts/talos.sh`'s job, and it lives at the repo root rather than nested inside this module - it isn't Terraform, so it doesn't need fetching through a module source, and it's a single self-contained file rather than several that could drift out of sync, since it's meant to be `curl`'d and run directly. One dispatcher, two subcommands, so there's one thing to remember instead of a script per operation: `talos.sh upgrade-talos <cluster-dir>` reads the declared state above via `tofu output` and reconciles the real cluster to match it, one node at a time. `talos.sh upgrade-k8s <cluster-dir> <target-version>` does the equivalent for Kubernetes itself, driving `talosctl upgrade-k8s` - which already sequences its own rollout across every node, so there's no per-node loop to write for that one.
 
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/scripts/upgrade-talos.sh" commit="blog/homelab-diary-part4" >}}
+Both only ever run against an already-bootstrapped, already-running cluster, so they can afford to be thorough: snapshot etcd before touching anything, check Talos *and* Kubernetes-level health before starting, and avoid the cluster's VIP throughout - VIP reliability during a control-plane reboot varies by provider and network setup, so rather than assume either way, every check is pinned to a specific node instead, and never to the one currently being upgraded. `upgrade-talos` additionally waits for each node to report `Ready` in Kubernetes and uncordons it as a safety net in case a previous failed run left it cordoned - Talos already uncordons automatically after its own reboot, this is just insurance.
+
+One thing worth being careful about: the two subcommands expect the opposite order relative to Terraform. For `upgrade-talos`, Terraform goes first - bump `installer_image_url` and `tofu apply`, then run the script. For `upgrade-k8s`, the script goes first - `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is, so run it against the real cluster, confirm it worked, and only then bump `k8s_version` and apply, to sync the declaration with what's now actually running.
+
+```
+curl -fsSL https://raw.githubusercontent.com/hovorka-labs/iac-modules/scripts-v1.0.0/scripts/talos.sh -o talos.sh
+chmod +x talos.sh
+```
+
+{{< github repo="hovorka-labs/iac-modules" path="scripts/talos.sh" commit="blog/homelab-diary-part4" >}}
 
 Just like the VM module, everything here is driven by two variables:
 
@@ -67,7 +76,7 @@ With the variables out of the way, most of the actual logic lives in `locals.tf`
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="1-13" >}}
 
-Right after that comes `control_plane_ips` and `worker_ips`, both filtered and pulled out of `talos_api_ips` above. Both also get exposed as part of the `nodes` output, which is what `upgrade-talos.sh` uses to build its own control-planes-first, sorted-for-stability upgrade order.
+Right after that comes `control_plane_ips` and `worker_ips`, both filtered and pulled out of `talos_api_ips` above. Both also get exposed as part of the `nodes` output, which is what `talos.sh upgrade-talos` uses to build its own control-planes-first, sorted-for-stability upgrade order.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="15-16" >}}
 
@@ -103,7 +112,7 @@ The network block is the same three-way fallback in both templates: use DHCP if 
 
 The worker template follows the same shape, just without the control plane specific bits like the VIP or the API server config - it's mostly just network setup and a sysctl bump for `vm.max_map_count`, which most memory-mapped-heavy workloads (Elasticsearch, OpenSearch, various vector databases) expect to already be raised, so I just set it cluster-wide on workers instead of chasing it down per app later.
 
-The module finishes off with six outputs: `talosconfig` and `kubeconfig`, so I can talk to the cluster with talosctl and kubectl right away, `machine_configs`, in case I ever need to inspect what actually got sent to a node, and `nodes` - each node's reachable IP, role, and target installer image, which is what `upgrade-talos.sh` reads to know what to do. `controlplane_ips` and `worker_ips` are just those same IPs pre-filtered by role, for anything else that wants them without having to filter `nodes` itself. The first three are marked sensitive, since none of them are things I want showing up in a plan output or CI log; the rest aren't - none of it is secret, and the upgrade script needs to be able to read `nodes` with a plain `tofu output -json`.
+The module finishes off with six outputs: `talosconfig` and `kubeconfig`, so I can talk to the cluster with talosctl and kubectl right away, `machine_configs`, in case I ever need to inspect what actually got sent to a node, and `nodes` - each node's reachable IP, role, and target installer image, which is what `talos.sh` reads to know what to do. `controlplane_ips` and `worker_ips` are just those same IPs pre-filtered by role, for anything else that wants them without having to filter `nodes` itself. The first three are marked sensitive, since none of them are things I want showing up in a plan output or CI log; the rest aren't - none of it is secret, and `talos.sh` needs to be able to read `nodes` with a plain `tofu output -json`.
 
 That's three modules covered - images, virtual machines, and now Talos itself. Next up, I'll show how all of them wire together into an actual running cluster.
 
