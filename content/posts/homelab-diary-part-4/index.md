@@ -57,10 +57,10 @@ So Terraform only owns declaring each node's target `installer_image_url`, expos
 
 Both only ever run against an already-bootstrapped, already-running cluster, so they can afford to be thorough: snapshot etcd before touching anything, check Talos *and* Kubernetes-level health before starting, and avoid the cluster's VIP throughout - VIP reliability during a control-plane reboot varies by provider and network setup, so rather than assume either way, every check is pinned to a specific node instead, and never to the one currently being upgraded. `upgrade-talos` additionally waits for each node to report `Ready` in Kubernetes and uncordons it as a safety net in case a previous failed run left it cordoned - Talos already uncordons automatically after its own reboot, this is just insurance.
 
-One thing worth being careful about: the two subcommands expect the opposite order relative to Terraform. For `upgrade-talos`, Terraform goes first - bump `installer_image_url` and `tofu apply`, then run the script. For `upgrade-k8s`, the script goes first - `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is, so run it against the real cluster, confirm it worked, and only then bump `k8s_version` and apply, to sync the declaration with what's now actually running.
+One thing worth being careful about: the two subcommands expect the opposite order relative to Terraform. For `upgrade-talos`, Terraform goes first - bump `installer_image_url` and `tofu apply`, then run the script. For `upgrade-k8s`, the script goes first - `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is, so run it against the real cluster, confirm it worked, and only then bump `k8s_version` and apply, to sync the declaration with what's now actually running. `upgrade-k8s` also checks the cluster's actual current version against the target before doing anything - if they already match, that's a sign this ran already, or Terraform got applied out of order, so it stops and asks rather than silently proceeding. It can't check the Terraform side directly (`k8s_version` isn't part of this module's own output surface the way `installer_image_url` is, and the variable name is caller-specific), but the cluster's real state is something it can always check.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/hovorka-labs/iac-modules/scripts-v1.0.0/scripts/talos.sh -o talos.sh
+curl -fsSL https://raw.githubusercontent.com/hovorka-labs/iac-modules/scripts-v1.1.0/scripts/talos.sh -o talos.sh
 chmod +x talos.sh
 ```
 
