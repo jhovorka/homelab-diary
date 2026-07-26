@@ -16,13 +16,23 @@ My first goal is to be able to create and maintain Kubernetes clusters. I am a b
 
 ## Images
 
-The very first module I need is the one to download Talos images onto the Proxmox nodes. The module is very simple - I just retrieve the image URL by specifying a Talos version and the extensions I need to include in the image, and then use the URL to download the image to the Proxmox nodes.
+The very first module I need is the one to look up Talos images. The module is very simple - I just give it a Talos version and the extensions I need, and it asks the Talos Image Factory for the resulting installer image and ISO URLs.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/proxmox/images/talos/main.tf" commit="blog/homelab-diary-part4" >}}
 
-Worth clarifying early, since it trips people up: this OS image and the installer image you'll see referenced later (`installer_image_url`) aren't the same artifact. The OS image here is the ISO - boot media a VM reads once, on first boot, to install Talos onto its disk. The installer image is a container image (an OCI reference, e.g. `factory.talos.dev/installer/<schematic>:<version>`) that Talos pulls and runs internally, both during that same initial install and every time `talosctl upgrade` runs later - an upgrade doesn't re-attach an ISO, it just tells the already-running Talos to pull a new installer image and reinstall itself in place. Every `installer_image_url` from here on refers to that second thing, the installer image, not the ISO.
+Worth clarifying early, since it trips people up: the ISO and the installer image you'll see referenced later (`installer_image_url`) aren't the same artifact. The ISO is boot media a VM reads once, on first boot, to install Talos onto its disk. The installer image is a container image (an OCI reference, e.g. `factory.talos.dev/installer/<schematic>:<version>`) that Talos pulls and runs internally, both during that same initial install and every time `talosctl upgrade` runs later - an upgrade doesn't re-attach an ISO, it just tells the already-running Talos to pull a new installer image and reinstall itself in place. Every `installer_image_url` from here on refers to that second thing, the installer image, not the ISO.
 
-That distinction has a real consequence for how I actually run this module day to day. The ISO is only ever read once per node, so downloading a fresh one every time `talos_version` changes - even when I'm not adding a node - is pure waste: a real network transfer and a real file sitting on Proxmox storage that nothing will ever read again. `download_iso` (default `true`) exists for exactly that: `installer_image` and `schematic_id` - the two outputs an already-running cluster actually needs, to declare a new upgrade target - come from Image Factory API calls that don't depend on the ISO having been downloaded at all, so skipping the download costs nothing. I set it to `false` for routine version bumps, and only flip it back to `true` while actually provisioning a new node or a fresh cluster.
+That distinction shaped a decision I initially got wrong. My first instinct was to have this module download the ISO straight to Proxmox on every apply, since that's what a fresh VM needs to boot. But the ISO is only ever read once per node - after that, upgrades pull the installer image directly, and the ISO just sits there. Tying the download to `talos_version` meant a real network transfer and a real file on Proxmox storage on every routine version bump, for a file nothing would ever read again. I tried gating it behind a boolean instead, `download_iso`, defaulting to `false` and only flipped on when actually provisioning a new node. That fixed the waste, but it opened a sharper problem: flipping the flag back off on a version that already had VMs booted from it would delete the ISO out from under Terraform's own tracking, and referencing a version whose ISO was never downloaded failed silently at plan time - clean plan, then an opaque Proxmox error mid-apply.
+
+In the end I pulled the download out of the module entirely. It's now a pure lookup: `installer_image`, `schematic_id`, and an `iso_url`/`iso_file_name` pair. When I actually need a new VM to boot off a version, I upload the ISO myself, once, per node:
+
+```bash
+name="$(tofu output -raw iso_file_name)"
+curl -fsSL "$(tofu output -raw iso_url)" -o "$name"
+pvesm upload <datastore> "$name" --content iso
+```
+
+It's a manual step, but it only comes up when a brand-new node is joining - which is rare - and it means Terraform never owns a destructive action against a file three other VMs might still be quietly depending on.
 
 
 ## Virtual Machines
