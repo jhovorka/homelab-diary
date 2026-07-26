@@ -72,7 +72,7 @@ The `cluster` variable holds the settings shared by every node in the cluster - 
 
 One thing worth pointing out is the `name` and `region` fields under the `cluster` variable. The `name` field is the actual Talos cluster name, used for cluster registration, while the `region` field only ends up in a `topology.kubernetes.io/region` node label. The `region` field is important because the Proxmox CSI plugin uses it for volume topology matching, and it has to match the Proxmox cluster the VM is on, not the Talos cluster's own name - two Talos clusters on the same physical Proxmox cluster still need to report the same region for the CSI plugin to work, so coupling it to the Talos cluster name would break that. Keeping `name` and `region` separate also means each of those two clusters can still have its own distinct `name`.
 
-With the variables out of the way, most of the actual logic lives in `locals.tf`, which does all the prep work before `main.tf` ever touches a resource. `talos_api_ips` is a small one, but sets up a pattern I reuse a few times: it defaults to each node's own IP, but can be overridden per node via `talos_api_ip`. I added this so the module also works on other cloud providers later, where a node's private cluster IP and the address you'd actually reach its Talos API on can be different (tested on Hetzner).
+With the variables out of the way, most of the actual logic lives in `locals.tf`, which does all the prep work before `main.tf` ever touches a resource. `talos_api_ips` is a small one, but sets up a pattern I reuse a few times: it defaults to each node's own IP, but can be overridden per node via `talos_api_ip`. I added this so the module also works on other cloud providers later, where a node's private cluster IP and the address you'd actually reach its Talos API on can be different.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="1-13" >}}
 
@@ -84,7 +84,7 @@ Right after that comes `control_plane_ips` and `worker_ips`, both filtered and p
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="18-24" >}}
 
-`kubelet_extra_args` is a small one: `provider_id`, when set, becomes kubelet's `--provider-id` flag, so a cloud controller manager can match a node back to its cloud instance, e.g. hcloud://<id> for Hetzner, or an equivalent for any other CCM. I don't use it on Proxmox since there's no CCM here, but I want the module to also work elsewhere eventually, so the field stays in and just stays unset in this homelab.
+`kubelet_extra_args` is a small one: `provider_id`, when set, becomes kubelet's `--provider-id` flag, so a cloud controller manager can match a node back to its cloud instance, in whatever URI format that CCM expects. I don't use it on Proxmox since there's no CCM here, but I want the module to also work elsewhere eventually, so the field stays in and just stays unset in this homelab.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="blog/homelab-diary-part4" lines="26-32" >}}
 
