@@ -24,12 +24,14 @@ Worth clarifying early, since it trips people up: the ISO and the installer imag
 
 That distinction shaped a decision I initially got wrong. My first instinct was to have this module download the ISO straight to Proxmox on every apply, since that's what a fresh VM needs to boot. But the ISO is only ever read once per node - after that, upgrades pull the installer image directly, and the ISO just sits there. Tying the download to `talos_version` meant a real network transfer and a real file on Proxmox storage on every routine version bump, for a file nothing would ever read again. I tried gating it behind a boolean instead, `download_iso`, defaulting to `false` and only flipped on when actually provisioning a new node. That fixed the waste, but it opened a sharper problem: flipping the flag back off on a version that already had VMs booted from it would delete the ISO out from under Terraform's own tracking, and referencing a version whose ISO was never downloaded failed silently at plan time - clean plan, then an opaque Proxmox error mid-apply.
 
-In the end I pulled the download out of the module entirely. It's now a pure lookup: `installer_image`, `schematic_id`, and an `iso_url`/`iso_file_name` pair. When I actually need a new VM to boot off a version, I upload the ISO myself, once, per node:
+In the end I pulled the download out of the module entirely. It's now a pure lookup: `installer_image`, `schematic_id`, and an `iso_url`/`iso_file_name` pair. When I actually need a new VM to boot off a version, I tell Proxmox to fetch it itself, once per node, straight through the API - the same `download-url` action behind the "Download from URL" button in the web UI, there's no `pvesm` subcommand for this:
 
 ```bash
-name="$(tofu output -raw iso_file_name)"
-curl -fsSL "$(tofu output -raw iso_url)" -o "$name"
-pvesm upload <datastore> "$name" --content iso
+curl -k -H "Authorization: PVEAPIToken=$PROXMOX_API_TOKEN" \
+  -X POST "https://<proxmox-host>:8006/api2/json/nodes/<node>/storage/<datastore>/download-url" \
+  --data-urlencode "content=iso" \
+  --data-urlencode "filename=$(tofu output -raw iso_file_name)" \
+  --data-urlencode "url=$(tofu output -raw iso_url)"
 ```
 
 It's a manual step, but it only comes up when a brand-new node is joining - which is rare - and it means Terraform never owns a destructive action against a file three other VMs might still be quietly depending on.
