@@ -1,0 +1,2 @@
+# Main config is in config/_default/
+# This file intentionally left minimal so config/_default/ takes precedence.

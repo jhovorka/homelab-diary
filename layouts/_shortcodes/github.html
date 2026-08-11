@@ -1,0 +1,95 @@
+{{- /*
+  Embeds a syntax-highlighted snippet fetched from a GitHub file at build time.
+
+  Usage:
+    {{< github repo="jhovorka/homelab-diary" path="config/_default/params.toml" commit="093bf1b" >}}
+    {{< github repo="jhovorka/homelab-diary" path="hugo.toml" commit="093bf1b" lines="1-5" lang="toml" >}}
+
+  Params:
+    repo    "owner/name"           (required)
+    path    file path within repo (required)
+    commit  commit SHA, tag, or branch — pin to a SHA so old posts don't drift (required)
+    lines   optional "start-end" range, 1-indexed, inclusive
+    lang    optional language override for highlighting; defaults to the file extension
+
+  Files longer than $collapseAfter lines render collapsed behind a fade,
+  with a checkbox-driven expand toggle — no JS needed.
+*/}}
+
+{{- $repo := .Get "repo" }}
+{{- $path := .Get "path" }}
+{{- $commit := .Get "commit" }}
+{{- $lines := .Get "lines" }}
+{{- $lang := .Get "lang" }}
+{{- $collapseAfter := 24 }}
+
+{{- if not (and $repo $path $commit) }}
+  {{- errorf "github shortcode in %q requires repo, path, and commit params" .Page.File.Filename }}
+{{- end }}
+
+{{- $rawURL := printf "https://raw.githubusercontent.com/%s/%s/%s" $repo $commit $path }}
+{{- $blobURL := printf "https://github.com/%s/blob/%s/%s" $repo $commit $path }}
+
+{{- $result := try (resources.GetRemote $rawURL) }}
+{{- if $result.Err }}
+  {{- errorf "github shortcode in %q: failed to fetch %s: %s" .Page.File.Filename $rawURL $result.Err }}
+{{- end }}
+{{- if not $result.Value }}
+  {{- errorf "github shortcode in %q: %s not found" .Page.File.Filename $rawURL }}
+{{- end }}
+
+{{- $content := $result.Value.Content }}
+{{- $lineRange := "" }}
+
+{{- if $lines }}
+  {{- $parts := split $lines "-" }}
+  {{- $start := int (index $parts 0) }}
+  {{- $end := int (index $parts 1) }}
+  {{- $allLines := split (trim $content "\n") "\n" }}
+  {{- $slice := first (add (sub $end $start) 1) (after (sub $start 1) $allLines) }}
+  {{- $content = delimit $slice "\n" }}
+  {{- $blobURL = printf "%s#L%d-L%d" $blobURL $start $end }}
+  {{- $lineRange = printf " lines %d-%d" $start $end }}
+{{- end }}
+
+{{- if not $lang }}
+  {{- $lang = path.Ext $path | strings.TrimPrefix "." }}
+  {{- /* .tftpl etc. are template extensions layered on top of a real
+     language (e.g. control-plane.yaml.tftpl) - Chroma has no "tftpl"
+     lexer, so without this it falls back to a generic guess and most
+     tokens (including plain YAML booleans) lose their highlighting. */}}
+  {{- if eq $lang "tftpl" }}
+    {{- $lang = path.Ext (strings.TrimSuffix $path ".tftpl") | strings.TrimPrefix "." }}
+  {{- end }}
+{{- end }}
+
+{{- $totalLines := len (split (trim $content "\n") "\n") }}
+{{- $collapsible := gt $totalLines $collapseAfter }}
+{{- $id := printf "code-panel-%d" .Ordinal }}
+
+<div class="code-panel{{ if $collapsible }} code-panel--collapsible{{ end }}">
+  {{- if $collapsible }}
+    <input type="checkbox" id="{{ $id }}" class="code-panel__toggle" hidden />
+  {{- end }}
+  <div class="code-panel__header">
+    <span class="code-panel__led" aria-hidden="true"></span>
+    <a class="code-panel__link" href="{{ $blobURL }}" target="_blank" rel="noopener" title="Open {{ $path }} on GitHub">
+      <i class="fa-brands fa-github" aria-hidden="true"></i>
+      <span>{{ $repo }}<span class="code-panel__sep">/</span>{{ $path }}{{ $lineRange }}</span>
+    </a>
+    <button type="button" class="code-panel__copy" aria-label="Copy code to clipboard">
+      <i class="fa-solid fa-copy" aria-hidden="true"></i>
+      <span>Copy</span>
+    </button>
+  </div>
+  <div class="code-panel__body">
+    {{ highlight $content $lang "" }}
+  </div>
+  <pre class="code-panel__raw" hidden aria-hidden="true">{{ $content }}</pre>
+  {{- if $collapsible }}
+    <label for="{{ $id }}" class="code-panel__expand">
+      <span class="code-panel__expand-more">Show full file ({{ $totalLines }} lines)</span>
+      <span class="code-panel__expand-less">Collapse</span>
+    </label>
+  {{- end }}
+</div>

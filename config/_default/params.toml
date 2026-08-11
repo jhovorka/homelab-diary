@@ -1,0 +1,27 @@
+title = "Jakub Hovorka"
+description = ""
+profilePicture = "images/jakub-hovorka.jpg"
+mainSections = ["posts"]
+rssFullContent = true
+contentratio = 0.7
+customJs = ["js/copy-code.js"]
+images = ["images/jakub-hovorka.jpg"]
+
+[author]
+  name = "Jakub Hovorka"
+  email = "hovorkaobch@gmail.com"
+
+[[socialIcons]]
+  icon = "fa-brands fa-github"
+  title = "GitHub"
+  url = "https://github.com/jhovorka"
+
+[[socialIcons]]
+  icon = "fa-brands fa-linkedin"
+  title = "LinkedIn"
+  url = "https://www.linkedin.com/in/jakub-hovorka/"
+
+[[socialIcons]]
+  icon = "fa-solid fa-envelope"
+  title = "Email"
+  url = "mailto:hovorkaobch@gmail.com"
