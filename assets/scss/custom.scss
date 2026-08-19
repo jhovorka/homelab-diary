@@ -1,5 +1,6 @@
 @use 'modules/color_theme' as color;
 @use 'modules/config' as conf;
+@use 'modules/variables' as var;
 @use 'sass:string';
 
 // ---------------------------------------------------------------------------
@@ -300,7 +301,7 @@ h6,
 // ---------------------------------------------------------------------------
 
 .archive {
-  max-width: 760px;
+  max-width: 1000px;
 
   &__heading {
     font-family: $font-mono;
@@ -390,12 +391,82 @@ h6,
 }
 
 // ---------------------------------------------------------------------------
-// The sidebar title's letter-spacing was tuned for the theme's original
-// proportional sans font. IBM Plex Mono already has wide, fixed-width
-// characters (including the space), so the same letter-spacing blows out
-// the gap between words at this size.
+// The logo already has "Jakub Hovorka" worked into the ring, so the
+// separate text title underneath it (theme default) is dropped in
+// layouts/partials/sidebar.html - sized up here to be the sidebar's own
+// focal point instead of a small icon next to a text title. 288px is the
+// narrowest the sidebar column ever gets (the ≥961px breakpoint, where it's
+// 30% of a 961px viewport), so 220px comfortably fits with room to spare at
+// every width from mobile (full-width stacked) up.
 // ---------------------------------------------------------------------------
 
-.sidebar__introduction-title {
-  letter-spacing: normal;
+.sidebar__introduction-profileimage {
+  width: 220px;
+  height: 220px;
+}
+
+// ---------------------------------------------------------------------------
+// About-page portrait (render-image.html's "class:" title convention) —
+// square source photo, cropped circular and kept small so it reads as an
+// author photo next to the bio text rather than a full content image.
+// ---------------------------------------------------------------------------
+
+.avatar-photo {
+  display: block;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar backdrop — a faint moon + mountain ridge + pine tree line
+// (static/images/sidebar-trees.svg), anchored to the bottom of the sidebar
+// column. Dark mode only: it's tuned against the navy accent color and
+// wouldn't read against light mode's white. Opacity lives in the SVG itself
+// (white fills at 2-9%) rather than a CSS opacity on the element, so it
+// never dims the logo/text sitting on top of it.
+//
+// The source SVG is drawn tall and narrow (900x1700) so that on desktop -
+// where the sidebar is a fixed, full-height column (see _sidebar.scss) - a
+// width-matched `background-size: 100% auto` lets it climb most of the way
+// up the column, moon near the top, trees rooted at the bottom, the same
+// composition as the reference mockup.
+//
+// Below the theme's own desktop breakpoint the sidebar collapses to a
+// short, content-height block instead of a tall column. Same
+// `background-size: 100% auto` still applies there (previously this had a
+// separate `100% 90px` override for that case, which - forcing an exact
+// height while width is also pinned to 100% - non-uniformly stretched the
+// tall/narrow source sideways, badly warping the trees and squashing the
+// moon into an oval). Uniform scaling means the block's own (shorter)
+// content-driven height simply clips the top of the image instead - it
+// loses the moon/stars, but trees + ridge still show undistorted, which
+// reads far better than a warped moon smear.
+// ---------------------------------------------------------------------------
+
+.theme--dark .sidebar {
+  background-image: url('/images/sidebar-trees.svg');
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-size: 100% auto;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile nav dropdown (the POSTS/ABOUT/theme-toggle panel under the
+// hamburger) - the theme gives this its own background only below the
+// desktop breakpoint, using `primary-lighter` (flat gray, #2a2a2a) instead
+// of `accent` like everywhere else. That predates the navy pivot; left
+// alone it's a visibly mismatched gray panel sitting on top of the navy
+// page. Desktop's version of this same element already uses `accent` (see
+// _nav.scss) - this just brings mobile in line with it.
+// ---------------------------------------------------------------------------
+
+.theme--dark .nav__list {
+  // color.t() only resolves inside color.themed()'s own content block (it
+  // reads a global populated per-theme by that mixin), and that mixin
+  // always emits both themes - not usable here since this is a dark-only
+  // override. Reference the variable directly instead.
+  background-color: var.$accent--darkmode;
 }

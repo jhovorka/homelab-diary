@@ -3,7 +3,17 @@
   case for this site's photos, which land at several MB straight off a
   phone) to a sane max width, converted to webp. Falls back to a plain
   <img> for anything that isn't a matching page resource (external URLs).
+
+  Markdown's title slot doubles as a class hook via a "class:" prefix, e.g.
+  ![alt](src "class:avatar-photo") - kept separate from a real title (which
+  would render as a hover tooltip) so the two don't collide.
 */}}
+{{- $class := "" }}
+{{- $title := .Title }}
+{{- if strings.HasPrefix .Title "class:" }}
+  {{- $class = strings.TrimPrefix "class:" .Title }}
+  {{- $title = "" }}
+{{- end }}
 {{- $img := .Page.Resources.GetMatch .Destination }}
 {{- if $img }}
   {{- $maxWidth := 1600 }}
@@ -19,7 +29,10 @@
     alt="{{ .Text }}"
     loading="lazy"
     decoding="async"
-    {{- with .Title }}
+    {{- with $class }}
+      class="{{ . }}"
+    {{- end }}
+    {{- with $title }}
       title="{{ . }}"
     {{- end }}
   />
@@ -28,7 +41,10 @@
     src="{{ .Destination | safeURL }}"
     alt="{{ .Text }}"
     loading="lazy"
-    {{- with .Title }}
+    {{- with $class }}
+      class="{{ . }}"
+    {{- end }}
+    {{- with $title }}
       title="{{ . }}"
     {{- end }}
   />

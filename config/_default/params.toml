@@ -1,15 +1,15 @@
 title = "Jakub Hovorka"
 description = ""
-profilePicture = "images/jakub-hovorka.jpg"
+profilePicture = "images/jh-logo.png"
 mainSections = ["posts"]
 rssFullContent = true
 contentratio = 0.7
 customJs = ["js/copy-code.js"]
-images = ["images/jakub-hovorka.jpg"]
+images = ["images/jh-logo.png"]
 
 [author]
   name = "Jakub Hovorka"
-  email = "hovorkaobch@gmail.com"
+  email = "jhovorka@proton.me"
 
 [[socialIcons]]
   icon = "fa-brands fa-github"
@@ -24,4 +24,4 @@ images = ["images/jakub-hovorka.jpg"]
 [[socialIcons]]
   icon = "fa-solid fa-envelope"
   title = "Email"
-  url = "mailto:hovorkaobch@gmail.com"
+  url = "mailto:jhovorka@proton.me"

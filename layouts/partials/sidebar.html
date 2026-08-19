@@ -1,0 +1,38 @@
+<div class="sidebar">
+  <div
+    class="sidebar__content {{ with .Site.Params.doNotLoadAnimations }}
+      .
+    {{ else }}
+      animated fadeInDown
+    {{ end }}"
+  >
+    <div class="sidebar__introduction">
+      <a href="{{ .Site.BaseURL | relLangURL }}" aria-label="{{ .Site.Params.Title }}">
+        <img
+          class="sidebar__introduction-profileimage"
+          src="{{ .Site.Params.profilePicture | relURL }}"
+          alt="{{ .Site.Params.Title }}"
+        />
+      </a>
+      <div class="sidebar__introduction-description">
+        <p>{{ replace .Site.Params.description "\n" "<br />" | safeHTML }}</p>
+      </div>
+    </div>
+    <ul class="sidebar__list">
+      {{ range $item := .Site.Params.socialIcons }}
+        <li class="sidebar__list-item">
+          <a
+            href="{{ $item.url }}"
+            target="_blank"
+            rel="noopener me"
+            aria-label="{{ $item.title }}"
+            title="{{ $item.title }}"
+          >
+            <i class="{{ $item.icon }} fa-2x" aria-hidden="true"></i>
+          </a>
+        </li>
+      {{ end }}
+    </ul>
+  </div>
+  {{- partial "footer.html" (dict "context" . "footerClassModifier" "sidebar") -}}
+</div>
