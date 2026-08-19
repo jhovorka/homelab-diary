@@ -74,74 +74,83 @@
 }
 
 :root.theme--dark {
-  /* Dark -> monokai */
-  --chr-def-color: #f8f8f2;
-  --chr-def-bg-color: #272822;
-  --chr-err-color: #960050;
-  --chr-err-bg-color: #1e0010;
-  --chr-hl-bg-color: #ffffcc;
-  --chr-lnt-color: #7f7f7f;
-  --chr-ln-color: #7f7f7f;
-  --chr-k-color: #66d9ef;
-  --chr-kc-color: #66d9ef;
-  --chr-kd-color: #66d9ef;
-  --chr-kn-color: #f92672;
-  --chr-kp-color: #66d9ef;
-  --chr-kr-color: #66d9ef;
-  --chr-kt-color: #66d9ef;
-  --chr-na-color: #a6e22e;
-  --chr-bp-color: #66d9ef;
-  --chr-nc-color: #a6e22e;
-  --chr-no-color: #66d9ef;
-  --chr-nd-color: #a6e22e;
-  --chr-ni-color: #f8f8f2;
-  --chr-ne-color: #a6e22e;
-  --chr-nf-color: #a6e22e;
-  --chr-fm-color: #a6e22e;
-  --chr-nl-color: #f8f8f2;
-  --chr-nx-color: #a6e22e;
-  --chr-py-color: #f8f8f2;
-  --chr-nt-color: #f92672;
-  --chr-vc-color: #a6e22e;
-  --chr-vg-color: #a6e22e;
-  --chr-vi-color: #a6e22e;
-  --chr-vm-color: #a6e22e;
-  --chr-l-color: #ae81ff;
-  --chr-ld-color: #e6db74;
-  --chr-s-color: #e6db74;
-  --chr-sa-color: #e6db74;
-  --chr-sb-color: #e6db74;
-  --chr-sc-color: #e6db74;
-  --chr-dl-color: #e6db74;
-  --chr-sd-color: #e6db74;
-  --chr-s2-color: #e6db74;
-  --chr-se-color: #ae81ff;
-  --chr-sh-color: #e6db74;
-  --chr-si-color: #e6db74;
-  --chr-sx-color: #e6db74;
-  --chr-sr-color: #e6db74;
-  --chr-s1-color: #e6db74;
-  --chr-ss-color: #e6db74;
-  --chr-m-color: #ae81ff;
-  --chr-mb-color: #ae81ff;
-  --chr-mf-color: #ae81ff;
-  --chr-mh-color: #ae81ff;
-  --chr-mi-color: #ae81ff;
-  --chr-il-color: #ae81ff;
-  --chr-mo-color: #ae81ff;
-  --chr-o-color: #f92672;
-  --chr-ow-color: #f92672;
-  --chr-p-color: #f8f8f2;
-  --chr-c-color: #75715e;
-  --chr-ch-color: #75715e;
-  --chr-cm-color: #75715e;
-  --chr-c1-color: #75715e;
-  --chr-cs-color: #75715e;
-  --chr-cp-color: #75715e;
-  --chr-cpf-color: #75715e;
-  --chr-gd-color: #f92672;
-  --chr-gi-color: #a6e22e;
-  --chr-gu-color: #75715e;
+  /* Dark -> a restrained navy palette instead of stock Monokai, so code
+     panels read as part of this site rather than a dropped-in default
+     theme. Background matches $primary-lighter--darkmode (the same
+     "raised navy panel" tone used for the code-panel header/tags/inline
+     code); the string color reuses $code--darkmode exactly, so inline
+     code and highlighted strings share one accent instead of two
+     unrelated ones. Fewer distinct hues than Monokai on purpose - one
+     cool blue for keywords, one warm amber for strings/literals, one
+     muted green for names, one soft violet for numbers, everything else
+     stays close to the neutral foreground/comment tones. */
+  --chr-def-color: #e8edf5;
+  --chr-def-bg-color: #152a42;
+  --chr-err-color: #ff6b8a;
+  --chr-err-bg-color: #3a1420;
+  --chr-hl-bg-color: #3a2f1a;
+  --chr-lnt-color: #4a6178;
+  --chr-ln-color: #4a6178;
+  --chr-k-color: #7dd3fc;
+  --chr-kc-color: #7dd3fc;
+  --chr-kd-color: #7dd3fc;
+  --chr-kn-color: #e893b3;
+  --chr-kp-color: #7dd3fc;
+  --chr-kr-color: #7dd3fc;
+  --chr-kt-color: #7dd3fc;
+  --chr-na-color: #86e1b0;
+  --chr-bp-color: #7dd3fc;
+  --chr-nc-color: #86e1b0;
+  --chr-no-color: #7dd3fc;
+  --chr-nd-color: #86e1b0;
+  --chr-ni-color: #e8edf5;
+  --chr-ne-color: #86e1b0;
+  --chr-nf-color: #86e1b0;
+  --chr-fm-color: #86e1b0;
+  --chr-nl-color: #e8edf5;
+  --chr-nx-color: #86e1b0;
+  --chr-py-color: #e8edf5;
+  --chr-nt-color: #e893b3;
+  --chr-vc-color: #86e1b0;
+  --chr-vg-color: #86e1b0;
+  --chr-vi-color: #86e1b0;
+  --chr-vm-color: #86e1b0;
+  --chr-l-color: #c4b5fd;
+  --chr-ld-color: #f0a875;
+  --chr-s-color: #f0a875;
+  --chr-sa-color: #f0a875;
+  --chr-sb-color: #f0a875;
+  --chr-sc-color: #f0a875;
+  --chr-dl-color: #f0a875;
+  --chr-sd-color: #f0a875;
+  --chr-s2-color: #f0a875;
+  --chr-se-color: #c4b5fd;
+  --chr-sh-color: #f0a875;
+  --chr-si-color: #f0a875;
+  --chr-sx-color: #f0a875;
+  --chr-sr-color: #f0a875;
+  --chr-s1-color: #f0a875;
+  --chr-ss-color: #f0a875;
+  --chr-m-color: #c4b5fd;
+  --chr-mb-color: #c4b5fd;
+  --chr-mf-color: #c4b5fd;
+  --chr-mh-color: #c4b5fd;
+  --chr-mi-color: #c4b5fd;
+  --chr-il-color: #c4b5fd;
+  --chr-mo-color: #c4b5fd;
+  --chr-o-color: #e893b3;
+  --chr-ow-color: #e893b3;
+  --chr-p-color: #e8edf5;
+  --chr-c-color: #5b7089;
+  --chr-ch-color: #5b7089;
+  --chr-cm-color: #5b7089;
+  --chr-c1-color: #5b7089;
+  --chr-cs-color: #5b7089;
+  --chr-cp-color: #5b7089;
+  --chr-cpf-color: #5b7089;
+  --chr-gd-color: #e893b3;
+  --chr-gi-color: #86e1b0;
+  --chr-gu-color: #5b7089;
 }
 
 /* Background */

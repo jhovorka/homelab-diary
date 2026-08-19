@@ -453,6 +453,17 @@ h6,
   background-size: 100% auto;
 }
 
+// Light mode's own version of the same idea - charcoal instead of white
+// linework (no moon/stars: night-sky imagery doesn't fit a bright
+// background), same tall composition and sizing rules so both themes
+// feel like the same site, not one designed and one left bare.
+.theme--light .sidebar {
+  background-image: url('/images/sidebar-trees-light.svg');
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-size: 100% auto;
+}
+
 // ---------------------------------------------------------------------------
 // Mobile nav dropdown (the POSTS/ABOUT/theme-toggle panel under the
 // hamburger) - the theme gives this its own background only below the

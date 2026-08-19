@@ -1,19 +1,20 @@
 // Light mode is white-and-charcoal, a straightforward monochrome scheme.
-// Dark mode's background is the one exception (see below) — the rest stays
-// gray so the navy doesn't need to be threaded through every other token.
 $accent--lightmode: #fafafa;
 $primary--lightmode: #161616;
 $primary-light--lightmode: #6b6b6b;
 $primary-lighter--lightmode: #e2e2e2;
 $shadow--lightmode: 0 8px 16px rgba(0, 0, 0, 0.08);
 
-// Sampled from the logo's badge background (static/images/jh-logo.png) so
-// the page background reads as a continuation of the logo, not a mismatched
-// near-black next to it.
+// Dark mode is tinted navy instead of gray, sampled from the logo's badge
+// background (static/images/jh-logo.png). primary-lighter is the "raised
+// panel" tone used for tags, inline code, borders, and the code-panel
+// header/body - it needs to be a step lighter than the page background
+// but still clearly navy, not the theme's original flat gray, or panels
+// read as a mismatched leftover next to everything else.
 $accent--darkmode: #021227;
 $primary--darkmode: #ececec;
 $primary-light--darkmode: #9a9a9a;
-$primary-lighter--darkmode: #2a2a2a;
+$primary-lighter--darkmode: #152a42;
 $shadow--darkmode: 0 8px 16px rgba(0, 0, 0, 0.4);
 
 // Links stay a slightly softer gray than body text, distinguished mainly
