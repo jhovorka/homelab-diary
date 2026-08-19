@@ -65,7 +65,7 @@ This is the last module I need for this part, and there is a lot to unpack here.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" lines="1-27" >}}
 
-Once every node has its config applied, `talos_machine_bootstrap` runs the cluster bootstrap against the first control plane node - whichever one happens to come first in the `nodes` map.
+Once every node has its config applied, `talos_machine_bootstrap` runs the cluster bootstrap against the first control plane node - specifically, whichever control plane's node name sorts first alphabetically. That's a Terraform quirk worth knowing: `keys()` always returns map keys sorted, not in the order you wrote them, so the "first" control plane is picked by name, not by position in the `nodes` map.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" lines="29-36" >}}
 
@@ -147,7 +147,7 @@ Both only ever run against a cluster that's already bootstrapped and running, so
 
 `upgrade-talos` reads its target version straight from Terraform's `installer_image_url`, so Terraform has to go first: bump `installer_image_url`, `tofu apply`, then run the script to actually roll it out.
 
-`upgrade-k8s` works the other way around. You pass it the target Kubernetes version directly on the command line, and it never looks at Terraform at all - `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is. So the order flips: run the script against the real cluster first, confirm it worked, and only then bump `k8s_version` in Terraform and apply, just to keep the declared version in sync with what's actually running.
+`upgrade-k8s` works the other way around. It still pulls kubeconfig, talosconfig, and the node list from Terraform to reach the cluster at all, same as `upgrade-talos` - what it doesn't do is read a target version from Terraform. You pass that directly on the command line instead, since `talosctl upgrade-k8s` doesn't care what Terraform thinks the version is. So the order flips: run the script against the real cluster first, confirm it worked, and only then bump `k8s_version` in Terraform and apply, just to keep the declared version in sync with what's actually running.
 
 Because of that, `upgrade-k8s` can't just check whether Terraform's side was already updated - `k8s_version` isn't exposed as an output the way `installer_image_url` is, and the variable name isn't even fixed, it depends on whoever's calling the module. So instead it checks the cluster's actual current version against the target I gave it. If they already match, that's suspicious: either this already ran, or `k8s_version` got bumped and applied before the script ran, which is the wrong order. Either way, it stops and asks instead of just proceeding.
 
