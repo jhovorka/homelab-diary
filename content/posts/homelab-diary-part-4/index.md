@@ -1,6 +1,6 @@
 ---
 title: "Homelab Diary Part 4: Talos, Minus the Manual Work"
-date: 2026-08-20
+date: 2026-08-19
 description: "Bootstrapping and upgrading a Talos Kubernetes cluster without ever running talosctl by hand."
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
