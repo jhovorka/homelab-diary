@@ -479,35 +479,29 @@ h6,
 
 // ---------------------------------------------------------------------------
 // On very wide screens (theme's own ≥1921px "widescreen" breakpoint) the
-// theme centers the sidebar+main column as a group, splitting the leftover
-// space into equal gutters on both sides - on a real 27"+ display that's a
-// couple hundred px of flat, art-less background between the true left edge
-// and the sidebar, which reads as the artwork being cut off rather than
-// intentional whitespace. Left-aligning instead (the theme's own default at
-// every other breakpoint) keeps the same width caps but pushes all the
-// leftover space to the right of the main column, so the sidebar - and its
-// background art - always starts flush at the screen edge.
+// theme narrows the sidebar+main split further (24%/56%, vs. 30%/70% at
+// every narrower desktop width) and centers that shrunken pair as a group -
+// leaving flat, art-less gutters on both sides of a real 27"+ display,
+// including one right next to the sidebar's own background art that reads
+// as the art being cut off rather than intentional whitespace.
+//
+// Keeping the normal desktop ratio (30%/70%, summing to the full 100%)
+// instead removes the leftover space at its source: the sidebar stays
+// flush left with no gutter beside it, and the reading column grows to
+// fill the rest of the screen with no gap on the right either. That also
+// fixes `.header` (the POSTS/ABOUT nav + toggle) for free - it's nested
+// inside `.wrapper__main` in the theme's markup, so its own `width: 100%`
+// now resolves against a column that already reaches the true right edge,
+// instead of needing a separate override to reach past it.
 // ---------------------------------------------------------------------------
 
 @include conf.widescreen {
-  .wrapper {
-    justify-content: flex-start;
+  .wrapper__sidebar {
+    width: 30%;
   }
 
-  // `.header` (the POSTS/ABOUT nav + theme toggle) lives inside
-  // `.wrapper__main` in the theme's markup, so its `width: 100%` resolves
-  // against the main column (56vw here), not the viewport - it and its
-  // border-bottom stop dead at the edge of the reading column instead of
-  // reaching the true right edge of the screen, leaving the rest of that
-  // row looking like an empty, cut-off strip. `vw` units resolve against
-  // the viewport regardless of what element they're on, so widening it to
-  // "100vw minus the sidebar's own width" reaches the screen edge without
-  // needing to move it out of its parent. 24vw mirrors sidebar_ratio_wide
-  // (0.8 * (1 - site.Params.contentratio) - currently 0.8 * 0.3 = 24%) from
-  // themes/anatole/layouts/partials/head.html; if that param ever changes,
-  // this needs to move with it.
-  .header {
-    width: calc(100vw - 24vw);
+  .wrapper__main {
+    width: 70%;
   }
 }
 
