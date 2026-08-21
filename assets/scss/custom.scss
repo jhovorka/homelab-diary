@@ -68,6 +68,17 @@ h6,
   text-underline-offset: 2px;
 }
 
+// The theme's render-image.html hook sets explicit width/height attributes
+// on content images (so the browser can reserve layout space before they
+// load). The theme's own `.post__content img` rule only constrains
+// `max-width: 100%` though, not height - so on any viewport narrower than
+// the image's native width, the browser shrinks the rendered width but
+// keeps the height attribute's pixel value literally, stretching the image
+// vertically. `height: auto` lets height scale down with width instead.
+.post__content img {
+  height: auto;
+}
+
 // Inline code as a small pill (Slack/GitHub-style): colored text on a gray
 // capsule. Scoped to :not(pre) so it doesn't touch code inside the
 // highlighted code-panel blocks, which already have their own styling.
@@ -418,47 +429,86 @@ h6,
 }
 
 // ---------------------------------------------------------------------------
-// Sidebar backdrop — a faint moon + mountain ridge + pine tree line
-// (static/images/sidebar-trees.svg), anchored to the bottom of the sidebar
-// column. Dark mode only: it's tuned against the navy accent color and
-// wouldn't read against light mode's white. Opacity lives in the SVG itself
-// (white fills at 2-9%) rather than a CSS opacity on the element, so it
-// never dims the logo/text sitting on top of it.
+// Sidebar backdrop — a faint moon + mountain ridge + pine tree line,
+// anchored to the bottom of the sidebar column. Dark mode uses white
+// linework tuned against the navy accent color; light mode swaps in a
+// charcoal version with no moon/stars (night-sky imagery doesn't fit a
+// bright background). Opacity lives in each SVG itself (2-9% fills) rather
+// than a CSS opacity on the element, so it never dims the logo/text sitting
+// on top of it.
 //
-// The source SVG is drawn tall and narrow (900x1700) so that on desktop -
-// where the sidebar is a fixed, full-height column (see _sidebar.scss) - a
-// width-matched `background-size: 100% auto` lets it climb most of the way
-// up the column, moon near the top, trees rooted at the bottom, the same
-// composition as the reference mockup.
+// Two source images per theme, not one, because the sidebar is a
+// fundamentally different shape above vs. below the desktop breakpoint:
+// on desktop it's a fixed, full-height column (see _sidebar.scss), so the
+// "hero" SVGs are drawn tall and narrow (900x1700), moon near the top,
+// trees rooted at the bottom. Below that breakpoint it collapses to a
+// short, wide, content-height block, so the "mobile" SVGs are a separate
+// short/wide composition (900x520) tuned for that shape - reusing the tall
+// hero art there previously meant zooming so far into its narrow width
+// that the treeline read as giant, blocky fangs rather than trees.
 //
-// Below the theme's own desktop breakpoint the sidebar collapses to a
-// short, content-height block instead of a tall column. Same
-// `background-size: 100% auto` still applies there (previously this had a
-// separate `100% 90px` override for that case, which - forcing an exact
-// height while width is also pinned to 100% - non-uniformly stretched the
-// tall/narrow source sideways, badly warping the trees and squashing the
-// moon into an oval). Uniform scaling means the block's own (shorter)
-// content-driven height simply clips the top of the image instead - it
-// loses the moon/stars, but trees + ridge still show undistorted, which
-// reads far better than a warped moon smear.
+// Both variants use `background-size: cover` (not `100% auto`): a fixed
+// `height: 100%` column's aspect ratio varies with viewport height, so no
+// width-based auto-height math reliably fills it - at plenty of ordinary
+// desktop sizes `100% auto` left a bare gap between the logo and the
+// treeline. `cover` guarantees the box is always fully painted, cropping
+// whichever axis has excess instead of leaving empty space.
 // ---------------------------------------------------------------------------
 
 .theme--dark .sidebar {
-  background-image: url('/images/sidebar-trees.svg');
+  background-image: url('/images/sidebar-trees-mobile.svg');
   background-repeat: no-repeat;
   background-position: bottom center;
-  background-size: 100% auto;
+  background-size: cover;
+
+  @include conf.desktop {
+    background-image: url('/images/sidebar-trees.svg');
+  }
 }
 
-// Light mode's own version of the same idea - charcoal instead of white
-// linework (no moon/stars: night-sky imagery doesn't fit a bright
-// background), same tall composition and sizing rules so both themes
-// feel like the same site, not one designed and one left bare.
 .theme--light .sidebar {
-  background-image: url('/images/sidebar-trees-light.svg');
+  background-image: url('/images/sidebar-trees-mobile-light.svg');
   background-repeat: no-repeat;
   background-position: bottom center;
-  background-size: 100% auto;
+  background-size: cover;
+
+  @include conf.desktop {
+    background-image: url('/images/sidebar-trees-light.svg');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// On very wide screens (theme's own ≥1921px "widescreen" breakpoint) the
+// theme centers the sidebar+main column as a group, splitting the leftover
+// space into equal gutters on both sides - on a real 27"+ display that's a
+// couple hundred px of flat, art-less background between the true left edge
+// and the sidebar, which reads as the artwork being cut off rather than
+// intentional whitespace. Left-aligning instead (the theme's own default at
+// every other breakpoint) keeps the same width caps but pushes all the
+// leftover space to the right of the main column, so the sidebar - and its
+// background art - always starts flush at the screen edge.
+// ---------------------------------------------------------------------------
+
+@include conf.widescreen {
+  .wrapper {
+    justify-content: flex-start;
+  }
+
+  // `.header` (the POSTS/ABOUT nav + theme toggle) lives inside
+  // `.wrapper__main` in the theme's markup, so its `width: 100%` resolves
+  // against the main column (56vw here), not the viewport - it and its
+  // border-bottom stop dead at the edge of the reading column instead of
+  // reaching the true right edge of the screen, leaving the rest of that
+  // row looking like an empty, cut-off strip. `vw` units resolve against
+  // the viewport regardless of what element they're on, so widening it to
+  // "100vw minus the sidebar's own width" reaches the screen edge without
+  // needing to move it out of its parent. 24vw mirrors sidebar_ratio_wide
+  // (0.8 * (1 - site.Params.contentratio) - currently 0.8 * 0.3 = 24%) from
+  // themes/anatole/layouts/partials/head.html; if that param ever changes,
+  // this needs to move with it.
+  .header {
+    width: calc(100vw - 24vw);
+  }
 }
 
 // ---------------------------------------------------------------------------
