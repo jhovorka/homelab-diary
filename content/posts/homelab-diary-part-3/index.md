@@ -72,7 +72,7 @@ The next step is to insert the RAM modules and the SSDs into all three mini PCs.
 
 With that out of the way, it's time to set up the virtualization layer. In the previous post, I mentioned that I plan to experiment with OpenStack. The ideal way to do this would be to deploy a Linux OS, such as Debian, on each PC and then install OpenStack directly on top of it.
 
-While I definitely plan to try that approach, I'll start with Proxmox first. I already have Terraform code prepared for spawning VMs and other resources needed for the Talos Kubernetes cluster, which will allow me to test the mini PCs under load and determine whether they are suitable for my use case.
+While I definitely plan to try that approach, I'll start with Proxmox first. I already have OpenTofu code prepared for spawning VMs and other resources needed for the Talos Kubernetes cluster, which will allow me to test the mini PCs under load and determine whether they are suitable for my use case.
 
 Proxmox is also a great starting point because it gives me flexibility. I can deploy OpenStack inside Proxmox VMs, or potentially even deploy OpenStack on Kubernetes. Both options involve nested virtualization, which adds some overhead and complexity, but for an initial lab environment, it is a useful trade-off, as it allows me to experiment, rebuild quickly, and validate the hardware before committing to a more bare-metal OpenStack deployment.
 
