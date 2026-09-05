@@ -18,7 +18,7 @@ skills:
   - category: "Networking & Security"
     items: ["Cilium", "Kyverno", "Envoy Gateway", "Ingress NGINX"]
   - category: "CI/CD"
-    items: ["ArgoCD", "GitLab CI/CD", "Bitbucket Pipelines", "Helm"]
+    items: ["ArgoCD", "GitLab CI/CD", "Bitbucket Pipelines", "Helm", "Kargo"]
   - category: "Logs & Metrics"
     items: ["Prometheus", "Grafana", "Thanos", "Loki", "Alloy", "Elasticsearch", "Kibana", "Tempo"]
   - category: "Infrastructure as Code"
@@ -43,17 +43,18 @@ experience:
       charts, working closely with development teams to troubleshoot
       production issues. Maintain Azure infrastructure with Terraform and
       operate the observability and logging stack (Prometheus, Thanos,
-      Grafana, ELK, Loki). Onboard and maintain developer and
+      Grafana, Loki, Tempo, Alloy). Onboard and maintain developer and
       data-engineering tooling with SSO integration, scalable deployments,
       and lifecycle management. Also support and extend data-platform
       tooling for Project Nightingale, integrating Argo Workflows, Spark,
       Trino, Nessie, and JupyterHub.
     achievements:
       - "Unified and standardized all deployment Helm charts across the organization, improving maintainability, consistency, and onboarding speed for engineering teams."
-      - "Led the org-wide migration from Bitbucket Pipelines to ArgoCD, then stabilized the platform to reliably deploy 140+ applications across 25 clusters — including educating teams on GitOps workflows."
-      - "Revitalized the observability stack (Prometheus, Thanos, Grafana) and modernized the logging platform (ELK Stack), including a full migration to a new environment."
+      - "Led the org-wide migration from Bitbucket Pipelines to ArgoCD, then stabilized the platform to reliably deploy 150+ applications across 30 clusters — including educating teams on GitOps workflows."
+      - "Revitalized the observability stack (Prometheus, Thanos, Grafana), consolidated two legacy ELK Stack environments into one, and later collaborated with the platform team on migrating logging to Loki."
       - "Took ownership of the infrastructure/DevOps track for Project Nightingale — integrating Argo Workflows/Events, Spark, Trino, Nessie, RabbitMQ, MinIO, DataHub, and JupyterHub, designing event-driven workflows and custom Python tooling for Spark-on-Kubernetes."
       - "Led the migration from Ingress NGINX to Envoy Gateway as part of an org-wide move to Gateway API, improving reliability, flexibility, and security of traffic management."
+      - "Collaborated with the platform team on adopting Talos for production on-premise environments (Proxmox, OpenStack), and on onboarding Cilium and Kyverno across environments."
   - title: "DevOps Engineer"
     company: "CGI"
     location: "Prague, Czech Republic"
