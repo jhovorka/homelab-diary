@@ -1,0 +1,41 @@
+{{- /*
+  Bespoke layout for the "simple" page type - currently just content/about.md.
+  Renders a compact centered profile card (photo, name, role, bio, social
+  links) instead of falling through to single.html's full-width post
+  treatment, which reads fine for long-form posts but leaves a short bio
+  looking sparse and its lines too wide to read comfortably.
+*/}}
+{{ define "main" }}
+  <div class="post">
+    <div class="post__content about">
+      {{ with .Params.image }}
+        <img class="about__photo" src="{{ . | relURL }}" alt="{{ $.Site.Params.author.name }}" />
+      {{ end }}
+      <h1>{{ .Site.Params.author.name }}</h1>
+      {{ with .Params.role }}
+        <p class="about__role">{{ . }}</p>
+      {{ end }}
+      <div class="about__bio">
+        {{ .Content }}
+      </div>
+      <ul class="about__social">
+        {{ with .Site.Params.socialIcons }}
+          {{ range . }}
+            <li>
+              <a href="{{ .url }}" target="_blank" rel="noopener me" aria-label="{{ .title }}">
+                <i class="{{ .icon }}" aria-hidden="true"></i>
+                {{ .title }}
+              </a>
+            </li>
+          {{ end }}
+        {{ end }}
+        <li>
+          <a href="{{ "resume" | relURL }}" aria-label="Resume">
+            <i class="fas fa-file-lines" aria-hidden="true"></i>
+            Resume
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+{{ end }}

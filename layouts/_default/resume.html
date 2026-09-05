@@ -1,0 +1,156 @@
+{{- /*
+  Resume page (content/resume.md, layout: "resume"). Data-driven from front
+  matter rather than markdown prose, so experience/skills/etc. render as
+  structured entries (title, dates, bullets) instead of one long scroll of
+  paragraphs - closer to how a CV actually reads.
+*/}}
+{{ define "main" }}
+  <div class="post">
+    <div class="post__content resume">
+      <div class="resume__header">
+        <div>
+          <h1>{{ .Site.Params.author.name }}</h1>
+          {{ with .Params.role }}
+            <p class="about__role">{{ . }}</p>
+          {{ end }}
+          {{ with .Params.location }}
+            <p class="resume__location">
+              <i class="fas fa-location-dot" aria-hidden="true"></i> {{ . }}
+            </p>
+          {{ end }}
+          {{ with .Site.Params.socialIcons }}
+            <ul class="about__social resume__contact">
+              {{ range . }}
+                <li>
+                  <a href="{{ .url }}" target="_blank" rel="noopener me" aria-label="{{ .title }}">
+                    <i class="{{ .icon }}" aria-hidden="true"></i>
+                    {{ .title }}
+                  </a>
+                </li>
+              {{ end }}
+            </ul>
+          {{ end }}
+        </div>
+        {{ with .Params.pdf }}
+          <a class="resume__download" href="{{ . | relURL }}" download>
+            <i class="fas fa-download" aria-hidden="true"></i> Download PDF
+          </a>
+        {{ end }}
+      </div>
+
+      {{ with .Params.summary }}
+        <p class="resume__summary">{{ . }}</p>
+      {{ end }}
+
+      {{ with .Params.skills }}
+        <h2 class="archive__heading">Skills</h2>
+        <div class="resume__skills">
+          {{ range . }}
+            <div class="resume__skill-group">
+              <span class="resume__skill-category">{{ .category }}</span>
+              <div class="resume__skill-tags">
+                {{ range .items }}
+                  <span class="tag">{{ . }}</span>
+                {{ end }}
+              </div>
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ with .Params.experience }}
+        <h2 class="archive__heading">Experience</h2>
+        <div class="resume__entries">
+          {{ range . }}
+            <div class="resume__entry">
+              <div class="resume__entry-header">
+                <div>
+                  <span class="resume__entry-title">{{ .title }}</span>
+                  <span class="resume__entry-company">{{ .company }} · {{ .location }}</span>
+                </div>
+                <span class="resume__entry-date">{{ .dates }}</span>
+              </div>
+              {{ with .summary }}
+                <p class="resume__entry-summary">{{ . }}</p>
+              {{ end }}
+              {{ with .achievements }}
+                <ul class="resume__entry-list">
+                  {{ range . }}
+                    <li>{{ . }}</li>
+                  {{ end }}
+                </ul>
+              {{ end }}
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ with .Params.projects }}
+        <h2 class="archive__heading">Projects</h2>
+        <div class="resume__entries">
+          {{ range . }}
+            <div class="resume__entry">
+              <div class="resume__entry-header">
+                {{ if .link }}
+                  <a class="resume__entry-title" href="{{ .link | relURL }}">{{ .title }}</a>
+                {{ else }}
+                  <span class="resume__entry-title">{{ .title }}</span>
+                {{ end }}
+              </div>
+              {{ with .achievements }}
+                <ul class="resume__entry-list">
+                  {{ range . }}
+                    <li>{{ . }}</li>
+                  {{ end }}
+                </ul>
+              {{ end }}
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ with .Params.certifications }}
+        <h2 class="archive__heading">Certifications</h2>
+        <div class="resume__entries">
+          {{ range . }}
+            <div class="resume__entry">
+              <span class="resume__entry-title">{{ .name }}</span>
+              {{ with .description }}
+                <p class="resume__entry-summary">{{ . }}</p>
+              {{ end }}
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ with .Params.education }}
+        <h2 class="archive__heading">Education</h2>
+        <div class="resume__entries">
+          {{ range . }}
+            <div class="resume__entry">
+              <div class="resume__entry-header">
+                <div>
+                  <span class="resume__entry-title">{{ .title }}</span>
+                  <span class="resume__entry-company">{{ .school }}</span>
+                </div>
+                <span class="resume__entry-date">{{ .dates }}</span>
+              </div>
+              {{ with .description }}
+                <p class="resume__entry-summary">{{ . }}</p>
+              {{ end }}
+            </div>
+          {{ end }}
+        </div>
+      {{ end }}
+
+      {{ with .Params.languages }}
+        <h2 class="archive__heading">Languages</h2>
+        <div class="resume__skill-tags">
+          {{ range . }}
+            <span class="tag">{{ .name }} — {{ .level }}</span>
+          {{ end }}
+        </div>
+      {{ end }}
+    </div>
+  </div>
+{{ end }}

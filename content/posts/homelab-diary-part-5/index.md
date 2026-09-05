@@ -58,7 +58,7 @@ Events:            <none>
 
 The reason why these pods can run is that these are static pods, which are special. These pods are completely ignored by the scheduler, and are instead created as containers directly by the Kubelet. They have the same two tolerations as CoreDNS simply because these get added to every pod in the cluster by default, regardless of what kind of pod it is - it's not something specific to static pods, and it's not what lets them run either. What actually matters is that they never go through the scheduler in the first place, so it doesn't matter what taints the node has or what these pods do or don't tolerate. This is also why the 300 second grace period on those tolerations never actually kicks them off: the object the API server shows you for a static pod is just a mirror, and deleting a mirror pod doesn't stop the real container - kubelet keeps it running straight from the manifest on disk and just recreates the mirror right after.
 
-One way to confirm this is to delete one of the pods that shows an old restart timestamp - for example, by running `kubectl delete pod kube-scheduler-talos-cp-3` - and see what happens. The pod comes back with its age reset to a few seconds, but it's still marked as restarted 3 and a half hours ago, because that restart history comes from the container itself, which was never actually touched.
+One way to confirm this is to delete one of the pods that shows an old restart timestamp - for example, by running `kubectl delete pod kube-scheduler-talos-cp-3`, and see what happens:
 
 ```
 $ kubectl get pods
@@ -76,3 +76,4 @@ kube-scheduler-talos-cp-2            1/1     Running   0               3h24m
 kube-scheduler-talos-cp-3            1/1     Running   3 (3h27m ago)   18s
 ```
 
+As you can see, the pod comes back with its age reset to a few seconds, but it's still marked as restarted 3 and a half hours ago, because that restart history comes from the container itself, which was never actually touched.

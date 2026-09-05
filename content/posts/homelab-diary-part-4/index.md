@@ -61,7 +61,7 @@ Second is the `cdrom` block, which defaults to interface `ide3` instead of the m
 
 ## Talos
 
-This is the last module I need for this part, and there is a lot to unpack here. If you are familiar with the Talos cluster creation process, this is basically it, just transformed from individual talosctl commands to OpenTofu code. The module opens with the `talos_machine_secrets` resource, which generates the secrets shared by the whole cluster. Then there is `talos_client_configuration`, which generates a talosconfig for the whole cluster, and `talos_machine_configuration`, which generates a machine config for each node. `talos_machine_configuration_apply` applies that config - to every node, control planes included.
+If you are familiar with the Talos cluster creation process, this is basically it, just transformed from individual talosctl commands to OpenTofu code. The module opens with the `talos_machine_secrets` resource, which generates the secrets shared by the whole cluster. Then there is `talos_client_configuration`, which generates a talosconfig for the whole cluster, and `talos_machine_configuration`, which generates a machine config for each node. `talos_machine_configuration_apply` applies that config - to every node, control planes included.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/main.tf" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" lines="1-27" >}}
 
@@ -79,7 +79,7 @@ The `cluster` variable holds the settings shared by every node in the cluster - 
 
 Quick note on the `name` and `region` fields under the `cluster` variable. The `name` field is the actual Talos cluster name, used for cluster registration, while the `region` field only ends up in a `topology.kubernetes.io/region` node label. The `region` field is important because the Proxmox CSI plugin uses it for volume topology matching, and it has to match the Proxmox cluster the VM is on, not the Talos cluster's own name - two Talos clusters on the same physical Proxmox cluster still need to report the same region for the CSI plugin to work, so coupling it to the Talos cluster name would break that. Keeping `name` and `region` separate also means each of those two clusters can still have its own distinct `name`.
 
-With the variables out of the way, most of the actual logic lives in `locals.tf`, which does all the prep work before `main.tf` ever touches a resource. `talos_api_ips` is a small one, but sets up a pattern I reuse a few times: it defaults to each node's own IP, but can be overridden per node via `talos_api_ip`. I added this so the module also works on other cloud providers later, where a node's private cluster IP and the address you'd actually reach its Talos API on can be different.
+With the variables out of the way, most of the actual logic lives in `locals.tf`. `talos_api_ips` is a small one, but sets up a pattern I reuse a few times: it defaults to each node's own IP, but can be overridden per node via `talos_api_ip`. I added this so the module also works on other cloud providers later, where a node's private cluster IP and the address you'd actually reach its Talos API on can be different.
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/locals.tf" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" lines="1-15" >}}
 
@@ -119,7 +119,7 @@ Next is the control plane template, still the more interesting of the two role-s
 
 {{< github repo="hovorka-labs/iac-modules" path="terraform/modules/talos/templates/machine-config/control-plane.yaml.tftpl" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" >}}
 
-A few fields deserve a closer look. `certSANs` is where `vip` and `api_server_extra_sans` land, so the kube-apiserver's TLS cert covers whatever address I actually hit it through, VIP or otherwise, not just the node's own IP. `api_server_config` gets merged in right after, using `indent(4, api_server_config)` so whatever raw YAML I pass in lines up correctly under `apiServer:` - that's the escape hatch for things like OIDC flags I didn't want a dedicated variable for.
+There are a few fields I want to go over in more detail.. `certSANs` is where `vip` and `api_server_extra_sans` land, so the kube-apiserver's TLS cert covers whatever address I actually hit it through, VIP or otherwise, not just the node's own IP. `api_server_config` gets merged in right after, using `indent(4, api_server_config)` so whatever raw YAML I pass in lines up correctly under `apiServer:` - that's the escape hatch for things like OIDC flags I didn't want a dedicated variable for.
 
 `allowSchedulingOnControlPlanes` and `externalCloudProvider` are both plain on/off switches, off by default, on when I actually need them. A single control-plane node needs scheduling allowed on itself, and any cloud provider with a CCM needs `externalCloudProvider` on to work - which matters most in that single-node case, since it's also the only node a LoadBalancer Service could ever reach.
 
@@ -158,7 +158,7 @@ chmod +x talos.sh
 
 {{< github repo="hovorka-labs/iac-modules" path="scripts/talos.sh" commit="f4f58a1acecfe2c56ddf1e91776c017ec873e3f4" >}}
 
-That's three modules covered - images, virtual machines, and now Talos itself. Next up, I'll show how all of them wire together into an actual running cluster.
+That's three modules covered - images, virtual machines, and now Talos itself. Let's see how to put them all together, and finally spin up a cluster.
 
 ## Putting It All Together
 
