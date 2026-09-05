@@ -605,9 +605,13 @@ a.resume__download {
 }
 
 .resume__skill-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  font-family: $font-mono;
+  font-size: 1.3rem;
+  line-height: 1.6;
+
+  @include color.themed() {
+    color: color.t('primary-light');
+  }
 }
 
 .resume__entries {

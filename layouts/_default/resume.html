@@ -48,11 +48,7 @@
           {{ range . }}
             <div class="resume__skill-group">
               <span class="resume__skill-category">{{ .category }}</span>
-              <div class="resume__skill-tags">
-                {{ range .items }}
-                  <span class="tag">{{ . }}</span>
-                {{ end }}
-              </div>
+              <div class="resume__skill-tags">{{ delimit .items ", " }}</div>
             </div>
           {{ end }}
         </div>
@@ -145,11 +141,11 @@
 
       {{ with .Params.languages }}
         <h2 class="archive__heading">Languages</h2>
-        <div class="resume__skill-tags">
-          {{ range . }}
-            <span class="tag">{{ .name }} — {{ .level }}</span>
-          {{ end }}
-        </div>
+        {{ $parts := slice }}
+        {{ range . }}
+          {{ $parts = $parts | append (printf "%s — %s" .name .level) }}
+        {{ end }}
+        <div class="resume__skill-tags">{{ delimit $parts ", " }}</div>
       {{ end }}
     </div>
   </div>
