@@ -43,7 +43,7 @@ Events:
   Warning  FailedScheduling  26m (x23 over 136m)  default-scheduler  0/6 nodes are available: 6 node(s) had untolerated taint {node.kubernetes.io/not-ready: }. preemption: 0/6 nodes are available: 6 Preemption is not helpful for scheduling.
 ```
 
-CoreDNS does tolerate not-ready, but that doesn't get it scheduled onto a node that isn't Ready either way - and without a CNI, none of the nodes in the cluster ever reach that state, since Kubernetes doesn't consider a node's networking configured until a CNI is present. That's exactly why the scheduler has nowhere to put it, as the event confirms: `0/6 nodes are available: 6 node(s) had untolerated taint {node.kubernetes.io/not-ready: }`, reported by `default-scheduler` itself. Now, you may be wondering how it is possible that the pods for the Scheduler, API Server and Controller Manager are in a Running state, when CoreDNS is not. If you run `kubectl describe` on one of these pods, you can even see that these pods have the same toleration as CoreDNS:
+CoreDNS does not tolerate nodes that are not in a Ready state, and without a CNI, none of the nodes in the cluster ever reach that state, since Kubernetes doesn't consider a node's networking configured until a CNI is present. That's exactly why the scheduler has nowhere to put it, as the event confirms: `0/6 nodes are available: 6 node(s) had untolerated taint {node.kubernetes.io/not-ready: }`. Now, you may be wondering how it is possible that the pods for the Scheduler, API Server and Controller Manager are in a Running state, when CoreDNS is not. If you run `kubectl describe` on one of these pods, you can even see that these pods have the same toleration as CoreDNS:
 
 ```
 $ kubectl describe pod -n kube-system kube-apiserver-talos-cp-1
@@ -56,7 +56,7 @@ Tolerations:       node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
 Events:            <none>
 ```
 
-The reason why these pods can run while the others can't is that these are static pods, which are special. These pods are completely ignored by the scheduler, and are instead created as containers directly by the Kubelet. They have the same two tolerations as CoreDNS simply because these get added to every pod in the cluster by default, regardless of what kind of pod it is - it's not something specific to static pods, and it's not what lets them run either. What actually matters is that they never go through the scheduler in the first place, so it doesn't matter what taints the node has or what these pods do or don't tolerate. This is also why the 300 second grace period on those tolerations never actually kicks them off: the object the API server shows you for a static pod is just a mirror, and deleting a mirror pod doesn't stop the real container - kubelet keeps it running straight from the manifest on disk and just recreates the mirror right after.
+The reason why these pods can run while the others can't is that these are static pods, which are special. These pods are completely ignored by the scheduler, and are instead created as containers directly by the Kubelet. They have the same two tolerations as CoreDNS simply because these get added to most pods in the cluster by default, regardless of what kind of pod it is, it's not something specific to static pods, and it's not what lets them run either. What actually matters is that they never go through the scheduler in the first place, so it doesn't matter what taints the node has or what these pods do or don't tolerate. This is also why the 300 second grace period on those tolerations never actually kicks them off: the object the API server shows you for a static pod is just a mirror, and deleting a mirror pod doesn't stop the real container - kubelet keeps it running straight from the manifest on disk and just recreates the mirror right after.
 
 One way to confirm this is to delete one of the pods that shows an old restart timestamp - for example, by running `kubectl delete pod -n kube-system kube-scheduler-talos-cp-3`, and see what happens:
 
@@ -77,3 +77,7 @@ kube-scheduler-talos-cp-3            1/1     Running   3 (3h27m ago)   18s
 ```
 
 As you can see, the pod comes back with its age reset to a few seconds, but it's still marked as restarted 3 and a half hours ago, because that restart history comes from the container itself, which was never actually touched.
+
+### Cilium installation
+
+Let's now make the cluster functional by installing Cilium. As I mentioned, I will be deploying it using OpenTofu, and I will do it through modules that will be publicly available, so anyone can use them. 
