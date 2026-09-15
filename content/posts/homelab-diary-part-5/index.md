@@ -4,6 +4,7 @@ date: 2026-08-29
 description: "Setting up Cilium CNI and Proxmox CSI Plugin"
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
+draft: true
 ---
 
 In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what we'll focus on today.
