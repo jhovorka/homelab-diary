@@ -8,7 +8,7 @@ series: ["Homelab Diary"]
 
 In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what we'll focus on today.
 
-Let's start with the CNI (Container Network Interface), the specification that network plugins implement to provide two key functions in Kubernetes: assigning an IP address to every pod, and handling pod-to-pod communication. Talos ships with Flannel as its default CNI, but I want to use Cilium instead, because it offers so much more than just the basic CNI functions, so I disabled the default. I also disabled kube-proxy, because Cilium can take over its job with its own eBPF-based replacement. Both are one-line changes in the machine config, and Cilium itself gets installed with OpenTofu, just like everything else in my setup. Before we dive into Cilium, I want to show you what happens when you don't have a CNI in the cluster, which is the case if you deployed the cluster using the example from my previous post. If you list all the pods in the cluster, you will see something like this:
+Let's start with the CNI (Container Network Interface), the specification that network plugins (like Flannel, Cilium, Calico, etc.) implement to provide two key functions in Kubernetes: assigning an IP address to every pod, and handling pod-to-pod communication. Talos ships with Flannel as its default CNI, but I want to use Cilium instead, because it offers so much more than just the basic CNI functions. To do that, I had to disable the default CNI, and IS also disabled kube-proxy, because Cilium can take over its job with its own eBPF-based replacement. Both are one-line changes in the machine config, and Cilium itself gets installed with OpenTofu, just like everything else in my setup. Before we dive into Cilium, I want to show you what happens when you don't have a CNI in the cluster, which is the case if you deployed the cluster using the example from my previous post. If you list all the pods in the cluster, you will see something like this:
 
 ```
 $ kubectl get pods -A
@@ -78,6 +78,11 @@ kube-scheduler-talos-cp-3            1/1     Running   3 (3h27m ago)   18s
 
 As you can see, the pod comes back with its age reset to a few seconds, but it's still marked as restarted 3 and a half hours ago, because that restart history comes from the container itself, which was never actually touched.
 
-### Cilium installation
+As you can see, having a CNI installed is essential, but I also mentioned 
 
-Let's now make the cluster functional by installing Cilium. As I mentioned, I will be deploying it using OpenTofu, and I will do it through modules that will be publicly available, so anyone can use them. 
+With the CNI out of the way, let's move on to CSI (Container Storage Interface). CSI is what allows pods to use persistent storage. It provides a standard way for Kubernetes to talk to different storage systems without having to know how each one works under the hood. Since this cluster is running on Proxmox, I'll be using the Proxmox CSI plugin but there are also different ones based on what your underlying platform is. While CSI is important, it's not essential 
+
+
+### Cilium deployment
+
+Just as the rest of this setup, I will deploy Cilium with OpenTofu, and I will do it through publicly available modules, so the setup is easy to replicate. To do this, we need to use 2 providers - (opentofu/kubernetes)[https://search.opentofu.org/provider/opentofu/kubernetes/latest] and (opentofu/helm)[https://search.opentofu.org/provider/opentofu/helm/latest].
