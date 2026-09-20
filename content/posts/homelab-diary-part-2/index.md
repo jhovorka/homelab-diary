@@ -11,7 +11,7 @@ neso:
     image: "ef79b712-2485-42f7-a8fd-63b05085e3e3.jpg"
 ---
 
-Yes, building any computer in 2026 is a painful experience for your wallet. Unfortunately, it won't get better any time soon (thanks, AI!), and it might even get worse, so we just have to grit our teeth and try to find the best deals possible.
+Yes, building any computer in 2026 is a painful experience for your wallet. Unfortunately, it won't get better any time soon (thanks, AI!), and it might even get worse, so I just have to grit my teeth and try to find the best deals possible.
 
 As I mentioned in the previous part of this series, a homelab is an indispensable tool for improving your engineering skills, which is why I think it's a worthy investment in your future. But what actually is a homelab?
 
@@ -39,7 +39,7 @@ I also have some nice-to-haves. One is the possibility to plug in an external GP
 
 When it comes to requirements for the actual homelab hardware, it should be compact, not occupy a lot of space, draw as little energy as possible, be relatively quiet, future-proof, and offer the best value per price ratio. These goals and requirements are quite tough, and it's not going to be easy to build for cheap, but I like a good challenge.
 
-With the goals and requirements set, the next thing I did was prepare the minimum specifications for the homelab PCs. My requirements completely ruled out servers and desktop builds because of the compactness, quietness, and low power draw. That leaves us with pretty much the only option, which is mini PCs, like Asus NUC, Lenovo Tiny, and others.
+With the goals and requirements set, the next thing I did was prepare the minimum specifications for the homelab PCs. My requirements completely ruled out servers and desktop builds because of the compactness, quietness, and low power draw. That leaves me with pretty much the only option, which is mini PCs, like Asus NUC, Lenovo Tiny, and others.
 
 Regarding the Kubernetes cluster(s) goal, in the past, I already tried running most of the tools I mentioned on a single mini PC with 8 physical cores and 64GB DDR5 RAM. Back then, the CPU was the main bottleneck. There are very few mini PCs that would have a considerably better CPU than what I had, and these tend to be extremely expensive. The only logical option is to spread the resources among multiple mini PCs, which also gives us High Availability as a nice bonus.
 

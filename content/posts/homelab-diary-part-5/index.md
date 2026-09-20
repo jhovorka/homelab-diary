@@ -4,9 +4,10 @@ date: 2026-08-29
 description: "Setting up Cilium CNI and Proxmox CSI Plugin"
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
+draft: true
 ---
 
-In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what we'll focus on today.
+In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what I'll focus on today.
 
 Let's start with the CNI (Container Network Interface), the specification that network plugins (like Flannel, Cilium, Calico, etc.) implement to provide two key functions in Kubernetes: assigning an IP address to every pod, and handling pod-to-pod communication. Talos ships with Flannel as its default CNI, but I want to use Cilium instead, because it offers so much more than just the basic CNI functions. To do that, I had to [disable the default CNI](https://github.com/hovorka-labs/iac-modules/blob/blog/homelab-diary-part4/terraform/modules/talos/templates/machine-config/common.yaml.tftpl#L20), and I usually also [disable kube-proxy](https://github.com/hovorka-labs/iac-modules/blob/blog/homelab-diary-part4/terraform/modules/talos/templates/machine-config/common.yaml.tftpl#L11), because Cilium can take over its job with its own eBPF-based replacement.
 
@@ -28,7 +29,7 @@ kube-system   kube-scheduler-talos-cp-2            1/1     Running   0          
 kube-system   kube-scheduler-talos-cp-3            1/1     Running   3 (130m ago)  127m
 ```
 
-You can see that components like the API Server, Scheduler, and Controller Manager pods all have status Running while the CoreDNS pods have status Pending. If we run `kubectl describe` on one of the coredns pods, we see this:
+You can see that components like the API Server, Scheduler, and Controller Manager pods all have status Running while the CoreDNS pods have status Pending. If I run `kubectl describe` on one of the coredns pods, I see this:
 
 ```
 $ kubectl describe pod -n kube-system coredns-8455d46969-8psc2
