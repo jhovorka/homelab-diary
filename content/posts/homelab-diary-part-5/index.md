@@ -4,7 +4,7 @@ date: 2026-08-29
 description: "Setting up Cilium CNI and Proxmox CSI Plugin"
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
-draft: true
+draft: false
 ---
 
 In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what I'll focus on today.
@@ -83,4 +83,8 @@ As you can see, the pod comes back with its age reset to a few seconds, but it's
 
 ### Cilium deployment
 
-Just as the rest of this setup, I will deploy Cilium with OpenTofu, and I will do it with modules, which will live in the [iac-modules repository](https://github.com/hovorka-labs/iac-modules/tree/blog/homelab-diary-part5), which I set up in the previous post. To deploy both the CNI and the CSI, I only need 2 providers - [opentofu/kubernetes](https://search.opentofu.org/provider/opentofu/kubernetes/latest) and [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest).
+Just as the rest of this setup, I will deploy Cilium with OpenTofu, and I will do it with modules, which will live in the [iac-modules repository](https://github.com/hovorka-labs/iac-modules/tree/blog/homelab-diary-part5), which I set up in the previous post. To deploy both the CNI and the CSI, I only need 2 providers - [opentofu/kubernetes](https://search.opentofu.org/provider/opentofu/kubernetes/latest) and [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest). This is how the Cilium module looks like:
+
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/helm/cilium/main.tf" commit="blog/homelab-diary-part5" lines="1-25" >}}
+
+The reason why I need the Helm provider is probably clear, it's because I use Helm for all deployments to the cluster. The Kubernetes provider on the other hand might not be 100% necessary, depending on your needs. I use it to create a Kubernetes namespace for both the CNI, and the CSI, before I deploy it with Helm. The namespace creation itself could be handled by the Helm provider, using the create_namespace flag, but that does not allow us to label the namespace. The reason why I need to label the namespace is that 
