@@ -4,87 +4,31 @@ date: 2026-08-29
 description: "Setting up Cilium CNI and Proxmox CSI Plugin"
 tags: ["homelab", "opentofu", "proxmox", "talos"]
 series: ["Homelab Diary"]
-draft: false
+draft: true
 ---
 
-In the previous part of this blog, I went over the process of spinning up a Talos cluster on Proxmox. To avoid making an already long and exhaustive post even longer, I left out one important part of that process, which is deploying a CNI and a CSI, so that's what I'll focus on today.
+In the last part, I deployed a fresh Talos cluster. Now it's time to get it into a usable state, starting with persistent storage.
 
-Let's start with the CNI (Container Network Interface), the specification that network plugins (like Flannel, Cilium, Calico, etc.) implement to provide two key functions in Kubernetes: assigning an IP address to every pod, and handling pod-to-pod communication. Talos ships with Flannel as its default CNI, but I want to use Cilium instead, because it offers so much more than just the basic CNI functions. To do that, I had to [disable the default CNI](https://github.com/hovorka-labs/iac-modules/blob/blog/homelab-diary-part4/terraform/modules/talos/templates/machine-config/common.yaml.tftpl#L20), and I usually also [disable kube-proxy](https://github.com/hovorka-labs/iac-modules/blob/blog/homelab-diary-part4/terraform/modules/talos/templates/machine-config/common.yaml.tftpl#L11), because Cilium can take over its job with its own eBPF-based replacement.
+Out of the box, Kubernetes doesn't know how to create or manage storage. When a workload needs persistent data, it requests storage through a PersistentVolumeClaim (PVC), but something has to fulfill that request. This is the job of a CSI (Container Storage Interface) driver. CSI is a standard interface that lets Kubernetes talk to different storage backends, such as a hypervisor, or a cloud provider, without needing to know how it works internally.
 
-Before we dive into Cilium, I want to show you what happens when you don't have a CNI in the cluster, which is the case if you deployed the cluster using the example from my previous post. If you list all the pods in the cluster, you will see something like this:
+When a PVC is created, the CSI driver provisions a volume on the storage backend, creates the matching PersistentVolume (PV) in Kubernetes, and attaches and mounts the volume on the node where the pod is scheduled. If the pod moves to another node, the driver takes care of detaching and reattaching the volume there.
 
-```
-$ kubectl get pods -A
-NAMESPACE     NAME                                 READY   STATUS    RESTARTS      AGE
-kube-system   coredns-8455d46969-8psc2             0/1     Pending   0             127m
-kube-system   coredns-8455d46969-dbtj4             0/1     Pending   0             127m
-kube-system   kube-apiserver-talos-cp-1            1/1     Running   0             130m
-kube-system   kube-apiserver-talos-cp-2            1/1     Running   0             130m
-kube-system   kube-apiserver-talos-cp-3            1/1     Running   0             130m
-kube-system   kube-controller-manager-talos-cp-1   1/1     Running   2 (130m ago)  127m
-kube-system   kube-controller-manager-talos-cp-2   1/1     Running   0             127m
-kube-system   kube-controller-manager-talos-cp-3   1/1     Running   2 (130m ago)  127m
-kube-system   kube-scheduler-talos-cp-1            1/1     Running   2 (130m ago)  127m
-kube-system   kube-scheduler-talos-cp-2            1/1     Running   0             127m
-kube-system   kube-scheduler-talos-cp-3            1/1     Running   3 (130m ago)  127m
-```
+Which CSI driver you need depends on where your storage lives. Since my cluster runs on Proxmox, I'll use the Proxmox CSI plugin, which creates volumes as virtual disks on the Proxmox host and attaches them directly to the Talos VMs. If you're running on a different platform, the concepts are the same, but the driver and its configuration will differ.
 
-You can see that components like the API Server, Scheduler, and Controller Manager pods all have status Running while the CoreDNS pods have status Pending. If I run `kubectl describe` on one of the coredns pods, I see this:
+## Deploying the CSI driver
 
-```
-$ kubectl describe pod -n kube-system coredns-8455d46969-8psc2
-Name:                 coredns-8455d46969-8psc2
-Namespace:            kube-system
-...
-Tolerations:                 node-role.kubernetes.io/control-plane:NoSchedule op=Exists
-                             node.cloudprovider.kubernetes.io/uninitialized:NoSchedule op=Exists
-                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
-                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
-Events:
-  Type     Reason            Age                  From               Message
-  ----     ------            ----                 ----               -------
-  Warning  FailedScheduling  26m (x23 over 136m)  default-scheduler  0/6 nodes are available: 6 node(s) had untolerated taint {node.kubernetes.io/not-ready: }. preemption: 0/6 nodes are available: 6 Preemption is not helpful for scheduling.
-```
+Since I am using Proxmox, there is, as far as i know, only one driver I can use, and that is [sergelogvinov/proxmox-csi-plugin](https://github.com/sergelogvinov/proxmox-csi-plugin). Just as I did in the previous part, I will be deploying everything through OpenTofu, and create a module for each component. I usually don't like to use OpenTofu for deploying, and maintaining K8s resources but I make an exception for the CSI, CNI, and Prometheus CRDs, because trying to deploy these with ArgoCD creates a chicken/egg problem. To handle the actual deployment to K8s, I always use Helm. I will use the driver's official Helm chart, in combination with [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest) provider. The driver requires an API token to interact with the Proxmox API, so I will first create a separate user with the right privileges. I won't go through the modules I used for this because they are super basic, feel free to check them out yourself. Here is how I use these modules to generate the credentials:
 
-CoreDNS does not tolerate nodes that are not in a Ready state, and without a CNI, none of the nodes in the cluster ever reach that state, since Kubernetes doesn't consider a node's networking configured until a CNI is present. That's exactly why the scheduler has nowhere to put it, as the event confirms: `0/6 nodes are available: 6 node(s) had untolerated taint {node.kubernetes.io/not-ready: }`. Now, you may be wondering how it is possible that the pods for the Scheduler, API Server and Controller Manager are in a Running state, when CoreDNS is not. If you run `kubectl describe` on one of these pods, you can even see that these pods have the same toleration as CoreDNS:
+{{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part5" lines="64-98" >}}
 
-```
-$ kubectl describe pod -n kube-system kube-apiserver-talos-cp-1
-Name:                 kube-apiserver-talos-cp-1
-Namespace:            kube-system
-...
-Node-Selectors:    <none>
-Tolerations:       node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
-                   node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
-Events:            <none>
-```
+And here is the module for deploying the driver with Helm:
 
-The reason why these pods can run while the others can't is that these are static pods, which are special. These pods are completely ignored by the scheduler, and are instead created as containers directly by the Kubelet. They have the same two tolerations as CoreDNS simply because these get added to most pods in the cluster by default, regardless of what kind of pod it is. It's not something specific to static pods, and it's not what lets them run either. What actually matters is that they never go through the scheduler in the first place, so it doesn't matter what taints the node has or what these pods do or don't tolerate. This is also why the 300 second grace period on those tolerations never actually kicks them off: the object the API server shows you for a static pod is just a mirror, and deleting a mirror pod doesn't stop the real container - kubelet keeps it running straight from the manifest on disk and just recreates the mirror right after.
+{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/helm/proxmox-csi-plugin/main.tf" commit="blog/homelab-diary-part5" >}}
 
-One way to confirm this is to delete one of the pods that shows an old restart timestamp - for example, by running `kubectl delete pod -n kube-system kube-scheduler-talos-cp-3`, and see what happens:
+It's pretty standard stuff, I choose what chart, and which version do I want to use, and also to what namespace do I want deploy it (it defaults to kube-system to make sure the driver is not blocked by Pod Security Policies whenever they are in a stric mode). Then I specify a path to a values file, which holds all the values I want to override, and lastly, I specify the value for the `config.clusters` field. I keep it outside of the values file because the values for this field are dynamic, and I get them from the module outputs, and general variables I reuse across all modules. Here is how I then invoke the module:
 
-```
-$ kubectl get pods -n kube-system
-NAME                                 READY   STATUS    RESTARTS        AGE
-coredns-8455d46969-8psc2             0/1     Pending   0               3h24m
-coredns-8455d46969-dbtj4             0/1     Pending   0               3h24m
-kube-apiserver-talos-cp-1            1/1     Running   0               3h27m
-kube-apiserver-talos-cp-2            1/1     Running   0               3h28m
-kube-apiserver-talos-cp-3            1/1     Running   0               3h27m
-kube-controller-manager-talos-cp-1   1/1     Running   2 (3h28m ago)   3h24m
-kube-controller-manager-talos-cp-2   1/1     Running   0               3h24m
-kube-controller-manager-talos-cp-3   1/1     Running   2 (3h28m ago)   3h24m
-kube-scheduler-talos-cp-1            1/1     Running   2 (3h28m ago)   3h24m
-kube-scheduler-talos-cp-2            1/1     Running   0               3h24m
-kube-scheduler-talos-cp-3            1/1     Running   3 (3h27m ago)   18s
-```
+{{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/main.tf" commit="blog/homelab-diary-part5" lines="100-115" >}}
 
-As you can see, the pod comes back with its age reset to a few seconds, but it's still marked as restarted 3 and a half hours ago, because that restart history comes from the container itself, which was never actually touched.
+And here is the values file with the overrides I supply path to:
 
-### Cilium deployment
-
-Just as the rest of this setup, I will deploy Cilium with OpenTofu, and I will do it with modules, which will live in the [iac-modules repository](https://github.com/hovorka-labs/iac-modules/tree/blog/homelab-diary-part5), which I set up in the previous post. To deploy both the CNI and the CSI, I only need 2 providers - [opentofu/kubernetes](https://search.opentofu.org/provider/opentofu/kubernetes/latest) and [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest). This is how the Cilium module looks like:
-
-{{< github repo="hovorka-labs/iac-modules" path="terraform/modules/helm/cilium/main.tf" commit="blog/homelab-diary-part5" lines="1-25" >}}
-
-The reason why I need the Helm provider is probably clear, it's because I use Helm for all deployments to the cluster. The Kubernetes provider on the other hand might not be 100% necessary, depending on your needs. I use it to create a Kubernetes namespace for both the CNI, and the CSI, before I deploy it with Helm. The namespace creation itself could be handled by the Helm provider, using the create_namespace flag, but that does not allow us to label the namespace. The reason why I need to label the namespace is that 
+{{< github repo="hovorka-labs/iac-modules" path="terraform/examples/talos-on-proxmox/proxmox-csi-values.yaml" commit="blog/homelab-diary-part5" >}}
