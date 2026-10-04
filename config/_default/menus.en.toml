@@ -1,6 +1,6 @@
 [[main]]
-  name = "Posts"
-  pageRef = "posts"
+  name = "Home"
+  pageRef = "/"
   weight = 10
 
 [[main]]
