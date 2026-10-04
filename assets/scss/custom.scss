@@ -711,25 +711,58 @@ a.resume__download {
 // whichever axis has excess instead of leaving empty space.
 // ---------------------------------------------------------------------------
 
+.theme--light .sidebar,
 .theme--dark .sidebar {
-  background-image: url('/images/sidebar-trees-mobile.svg');
   background-repeat: no-repeat;
   background-position: bottom center;
   background-size: cover;
-
-  @include conf.desktop {
-    background-image: url('/images/sidebar-trees.svg');
-  }
 }
 
 .theme--light .sidebar {
-  background-image: url('/images/sidebar-trees-mobile-light.svg');
-  background-repeat: no-repeat;
-  background-position: bottom center;
-  background-size: cover;
+  background-image: url('/images/sidebar-landscape-mobile-light.webp');
 
   @include conf.desktop {
-    background-image: url('/images/sidebar-trees-light.svg');
+    background-image: url('/images/sidebar-landscape-light.webp');
+  }
+}
+
+// Dark mode reuses the same landscape under a navy wash, so it reads as dusk
+// rather than needing a second illustration.
+.theme--dark .sidebar {
+  background-image: linear-gradient(rgba(6, 14, 34, 0.66), rgba(6, 14, 34, 0.74)),
+    url('/images/sidebar-landscape-mobile-light.webp');
+
+  @include conf.desktop {
+    background-image: linear-gradient(rgba(6, 14, 34, 0.66), rgba(6, 14, 34, 0.74)),
+      url('/images/sidebar-landscape-light.webp');
+  }
+}
+
+// Below the desktop breakpoint the sidebar is a content-height block with no
+// footer inside it, so the icon row ends flush with the bottom of the image.
+// Give it breathing room there; on desktop the column is flex-centered.
+.sidebar__content {
+  padding-bottom: 36px;
+
+  @include conf.desktop {
+    padding-bottom: 0;
+  }
+}
+
+// Icons and the copyright line sit over water and rock whose brightness
+// changes with the crop, so no single flat color stays legible. Light text
+// with a soft dark halo works over all of it, in both themes.
+.theme--light .sidebar,
+.theme--dark .sidebar {
+  .sidebar__list-item a,
+  .footer__item,
+  .footer__item a {
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(6, 14, 34, 0.85);
+  }
+
+  .sidebar__list-item i {
+    filter: drop-shadow(0 1px 3px rgba(6, 14, 34, 0.8));
   }
 }
 
