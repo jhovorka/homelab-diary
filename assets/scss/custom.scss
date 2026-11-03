@@ -77,6 +77,22 @@ h6,
   > p {
     margin: 0 0 1.2em;
   }
+
+  // Theme sets no margin on headings, so they fell back to the browser
+  // default (0.83em top and bottom) - that collided with the paragraph
+  // rule above into an uneven gap: larger above a heading than below it.
+  > h1,
+  > h2,
+  > h3,
+  > h4,
+  > h5,
+  > h6 {
+    margin: 1.6em 0 0.6em;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
 }
 
 // Links are close in value to body text in a monochrome palette, so lean
