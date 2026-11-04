@@ -15,7 +15,7 @@ The main job of a CNI (Container Network Interface) plugin is to give every pod 
 
 Just as in the previous part, I will be deploying everything through OpenTofu, and I create a module for each component. I usually don't like to use OpenTofu for deploying and maintaining Kubernetes resources, but I make an exception for the CNI and the Prometheus CRDs, because trying to deploy these with ArgoCD creates a chicken/egg problem. ArgoCD itself is made of pods, and pods can't start without a network. So the CNI has to be there before anything else, and once it is, ArgoCD can take over.
 
-To handle the actual deployment to Kubernetes, I always use Helm. I use Cilium's official Helm chart, in combination with the [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest) provider.
+To handle the actual deployment to Kubernetes, I always use Helm. To deploy Cilium, I use their official Helm chart, in combination with the [opentofu/helm](https://search.opentofu.org/provider/opentofu/helm/latest) provider.
 
 ## Disabling kube-proxy
 
