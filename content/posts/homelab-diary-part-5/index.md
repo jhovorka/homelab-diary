@@ -1,6 +1,6 @@
 ---
 title: "Homelab Diary Part 5: Giving the cluster a network"
-date: 2026-08-29
+date: 2026-11-04
 description: "Deploying Cilium as the CNI on a Talos cluster with OpenTofu, replacing kube-proxy and MetalLB along the way."
 tags: ["homelab", "opentofu", "proxmox", "talos", "cilium"]
 series: ["Homelab Diary"]
