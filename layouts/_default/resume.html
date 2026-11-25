@@ -143,9 +143,9 @@
         <h2 class="archive__heading">Languages</h2>
         {{ $parts := slice }}
         {{ range . }}
-          {{ $parts = $parts | append (printf "%s — %s" .name .level) }}
+          {{ $parts = $parts | append (printf "%s: %s" .name .level) }}
         {{ end }}
-        <div class="resume__skill-tags">{{ delimit $parts ", " }}</div>
+        <div class="resume__skill-tags">{{ delimit $parts " · " }}</div>
       {{ end }}
     </div>
   </div>
