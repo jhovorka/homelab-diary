@@ -17,20 +17,20 @@ summary: >-
 skills:
   - category: "Kubernetes"
     items: ["AKS", "GKE", "Talos", "K3s", "Helm"]
-  - category: "Infrastructure"
+  - category: "Cloud & Virtualization"
     items: ["Azure", "Google Cloud", "Proxmox", "OpenStack"]
   - category: "Networking & Security"
-    items: ["Cilium", "Gateway API", "Envoy Gateway", "Ingress NGINX", "Kyverno", "cert-manager", "OpenBao", "External Secrets"]
+    items: ["Cilium", "Gateway API", "Envoy Gateway", "Kyverno", "cert-manager", "OpenBao", "External Secrets"]
   - category: "CI/CD & GitOps"
     items: ["ArgoCD", "Kargo", "GitLab CI/CD", "Bitbucket Pipelines", "GitHub Actions"]
-  - category: "Logs & Metrics"
+  - category: "Observability & Monitoring"
     items: ["Prometheus", "Grafana", "Thanos", "Loki", "Alloy", "Tempo", "Elasticsearch", "Kibana"]
   - category: "Infrastructure as Code"
     items: ["Terraform", "OpenTofu", "Ansible"]
   - category: "Core Technologies"
     items: ["Linux", "Docker", "Git"]
   - category: "Scripting"
-    items: ["Bash", "Python", "Go"]
+    items: ["Bash", "Python", "Go (Golang)"]
   - category: "Storage"
     items: ["MinIO", "PostgreSQL"]
   - category: "Data Platform & Orchestration"
@@ -48,7 +48,7 @@ experience:
       applications are packaged (Helm), deployed (ArgoCD) and run on 30
       Kubernetes clusters in 7 countries: AKS, GKE, clusters at local cloud
       providers, and on-prem Talos on Proxmox and OpenStack. Troubleshoot
-      production issues across the clusters, from failing deployments to
+      production incidents across the clusters, from failing deployments to
       networking, storage and performance problems, then follow up with
       lasting fixes and better alerting. Maintain the infrastructure code
       (OpenTofu) for the cloud and on-prem environments, and the
@@ -101,10 +101,14 @@ projects:
 certifications:
   - name: "CNCF Golden Kubestronaut (2026)"
     description: >-
-      The highest tier of the CNCF Kubestronaut program, earned by passing
-      all 16 CNCF and Linux Foundation certification exams: CKA, CKAD, CKS,
-      LFCS, CNPE, KCNA, KCSA, PCA, OTCA, CCA, KCA, CAPA, CGOA, ICA, CBA,
-      CNPA.
+      The highest tier of the CNCF Kubestronaut program, all 16 exams
+      passed. Professional: Certified Kubernetes Administrator (CKA),
+      Certified Kubernetes Application Developer (CKAD), Certified
+      Kubernetes Security Specialist (CKS), Linux Foundation Certified
+      System Administrator (LFCS), Certified Cloud Native Platform Engineer
+      (CNPE). Associate: KCNA, KCSA, Prometheus (PCA), OpenTelemetry (OTCA),
+      Cilium (CCA), Kyverno (KCA), Argo (CAPA), GitOps (CGOA), Istio (ICA),
+      Backstage (CBA), Platform Engineering (CNPA).
 education:
   - title: "Information Technology"
     school: "Information Technology High School Kladno"
